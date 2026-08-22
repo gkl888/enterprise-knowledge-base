@@ -11,10 +11,6 @@
     "@supabase/supabase-js": "^2.45.0",
     "hono": "^4.6.0"
   },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240919.0",
-    "typescript": "^5.0.0"
-  },
   "engines": {
     "node": ">=18"
   }
