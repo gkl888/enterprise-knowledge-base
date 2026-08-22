@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - 企业知识库</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5; min-height: 100vh;
+        }
+        .navbar {
+            background: #2c3e50; height: 56px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 24px; position: sticky; top: 0; z-index: 100;
+        }
+        .nav-left { display: flex; align-items: center; gap: 32px; }
+        .nav-brand {
+            display: flex; align-items: center; gap: 10px;
+            color: white; font-size: 16px; font-weight: 500; text-decoration: none;
+        }
+        .nav-brand svg { width: 20px; height: 20px; fill: white; }
+        .nav-menu { display: flex; gap: 8px; }
+        .nav-item {
+            padding: 8px 16px; color: rgba(255,255,255,0.85); font-size: 14px;
+            cursor: pointer; border-radius: 4px; transition: all 0.2s; text-decoration: none;
+        }
+        .nav-item:hover { color: white; background: rgba(255,255,255,0.1); }
+        .nav-item.active { color: white; background: rgba(255,255,255,0.15); }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        .search-box {
+            display: flex; align-items: center; background: rgba(255,255,255,0.1);
+            border-radius: 4px; padding: 6px 12px; gap: 8px;
+        }
+        .search-box svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.6); }
+        .search-box input {
+            background: transparent; border: none; color: white;
+            font-size: 13px; width: 140px; outline: none;
+        }
+        .search-box input::placeholder { color: rgba(255,255,255,0.5); }
+        .user-avatar {
+            width: 32px; height: 32px; background: #5a6c7d; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 13px;
+        }
+        .breadcrumb {
+            background: white; padding: 12px 24px;
+            border-bottom: 1px solid #e8e8e8; font-size: 13px; color: #666;
+        }
+        .breadcrumb a { color: #1677ff; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .main-content { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+        .page-header {
+            background: white; border-radius: 12px; padding: 24px 32px; margin-bottom: 24px;
+        }
+        .page-title {
+            display: flex; align-items: center; gap: 12px;
+            font-size: 20px; font-weight: 600; color: #1a1a1a;
+        }
+        .page-title svg { width: 24px; height: 24px; fill: #1677ff; }
+        .page-desc { font-size: 14px; color: #666; margin-top: 8px; }
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 20px; margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white; border-radius: 12px; padding: 24px;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .stat-icon.blue { background: #e6f7ff; }
+        .stat-icon.green { background: #f6ffed; }
+        .stat-icon.orange { background: #fff7e6; }
+        .stat-icon.red { background: #fff1f0; }
+        .stat-icon svg { width: 24px; height: 24px; }
+        .stat-icon.blue svg { fill: #1677ff; }
+        .stat-icon.green svg { fill: #52c41a; }
+        .stat-icon.orange svg { fill: #fa8c16; }
+        .stat-icon.red svg { fill: #f5222d; }
+        .stat-info { flex: 1; }
+        .stat-value { font-size: 24px; font-weight: 600; color: #1a1a1a; }
+        .stat-label { font-size: 13px; color: #999; margin-top: 4px; }
+        .content-grid {
+            display: grid; grid-template-columns: 1fr 300px;
+            gap: 24px;
+        }
+        .main-panel {
+            background: white; border-radius: 12px; overflow: hidden;
+        }
+        .panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 24px; border-bottom: 1px solid #f0f0f0;
+        }
+        .panel-title {
+            font-size: 16px; font-weight: 600; color: #1a1a1a;
+        }
+        .btn {
+            padding: 8px 16px; border-radius: 6px; font-size: 14px;
+            cursor: pointer; border: none;
+            display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .btn svg { width: 16px; height: 16px; fill: currentColor; }
+        .btn-primary { background: #0d7a3d; color: white; }
+        .btn-primary:hover { background: #0a6b35; }
+        .btn-danger { background: #ff4d4f; color: white; }
+        .btn-danger:hover { background: #ff7875; }
+        .btn-default { background: white; border: 1px solid #d9d9d9; color: #666; }
+        .btn-default:hover { border-color: #1677ff; color: #1677ff; }
+        .article-list { max-height: 600px; overflow-y: auto; }
+        .article-item {
+            display: flex; align-items: center; padding: 16px 24px;
+            border-bottom: 1px solid #f5f5f5; transition: background 0.2s;
+        }
+        .article-item:hover { background: #fafafa; }
+        .article-item:last-child { border-bottom: none; }
+        .article-info { flex: 1; min-width: 0; }
+        .article-title {
+            font-size: 14px; font-weight: 500; color: #1a1a1a;
+            margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .article-meta { font-size: 12px; color: #999; }
+        .article-actions { display: flex; gap: 8px; }
+        .action-btn { padding: 6px 12px; font-size: 12px; }
+        .sidebar-panel { display: flex; flex-direction: column; gap: 24px; }
+        .sidebar-card { background: white; border-radius: 12px; overflow: hidden; }
+        .sidebar-header {
+            padding: 16px 20px; border-bottom: 1px solid #f0f0f0;
+            font-size: 15px; font-weight: 600; color: #1a1a1a;
+        }
+        .category-list { padding: 8px 0; }
+        .category-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 20px; font-size: 14px; color: #333;
+        }
+        .category-item:hover { background: #f5f5f5; }
+        .category-name { display: flex; align-items: center; gap: 8px; }
+        .category-count {
+            font-size: 12px; color: #999; background: #f5f5f5;
+            padding: 2px 8px; border-radius: 10px;
+        }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white; border-radius: 12px;
+            width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px; border-bottom: 1px solid #f0f0f0;
+        }
+        .modal-title { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+        .modal-close {
+            width: 32px; height: 32px; border: none; background: transparent;
+            cursor: pointer; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-close:hover { background: #f5f5f5; }
+        .modal-close svg { width: 20px; height: 20px; fill: #999; }
+        .modal-body { padding: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block; font-size: 14px; font-weight: 500;
+            color: #333; margin-bottom: 8px;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 10px 14px; border: 1px solid #d9d9d9;
+            border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #1677ff; }
+        .form-textarea { min-height: 200px; resize: vertical; }
+        .modal-footer {
+            display: flex; justify-content: flex-end; gap: 12px;
+            padding: 16px 24px; border-top: 1px solid #f0f0f0;
+        }
+        .discussion-list { padding: 0 20px; }
+        .discussion-item {
+            padding: 20px 0; border-bottom: 1px solid #f0f0f0;
+        }
+        .discussion-item:last-child { border-bottom: none; }
+        .discussion-header {
+            display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;
+        }
+        .discussion-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 13px; font-weight: 500; flex-shrink: 0;
+        }
+        .discussion-meta { flex: 1; }
+        .discussion-author { font-size: 14px; font-weight: 500; color: #1a1a1a; margin-bottom: 2px; }
+        .discussion-time { font-size: 12px; color: #999; }
+        .discussion-type {
+            padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;
+        }
+        .type-request { background: #e6f7ff; color: #1677ff; }
+        .type-question { background: #fff7e6; color: #fa8c16; }
+        .type-share { background: #f6ffed; color: #52c41a; }
+        .discussion-content {
+            font-size: 14px; color: #333; line-height: 1.7;
+            margin-bottom: 12px; padding-left: 48px;
+        }
+        .discussion-footer {
+            display: flex; align-items: center; gap: 12px; padding-left: 48px;
+        }
+        .discussion-replies {
+            margin-top: 12px; margin-left: 48px; padding: 12px;
+            background: #f8f9fa; border-radius: 8px;
+        }
+        .discussion-reply {
+            padding: 8px 0; border-bottom: 1px dashed #e8e8e8;
+            font-size: 13px; color: #666;
+        }
+        .discussion-reply:last-child { border-bottom: none; }
+        .reply-author { font-weight: 500; color: #333; }
+        .reply-time { font-size: 11px; color: #999; margin-left: 8px; }
+        .empty-state { text-align: center; padding: 40px 20px; }
+        .empty-state svg { width: 48px; height: 48px; fill: #d9d9d9; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; color: #999; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="index.html" class="nav-brand">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                企业知识库
+            </a>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-item">首页</a>
+                <a href="favorites.html" class="nav-item">我的收藏</a>
+                <a href="discussion.html" class="nav-item">知识交流池</a>
+                <a href="admin.html" class="nav-item active">管理后台</a>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" placeholder="快速搜索知识" id="navSearch">
+            </div>
+            <div class="user-avatar" id="userAvatar">系</div>
+        </div>
+    </nav>
+
+    <div class="breadcrumb">
+        <a href="index.html">知识库</a> / 管理后台
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                管理后台
+            </div>
+            <div class="page-desc">管理知识库文章、分类和系统设置</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statArticles">0</div>
+                    <div class="stat-label">文章总数</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statViews">0</div>
+                    <div class="stat-label">总浏览量</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statFavorites">0</div>
+                    <div class="stat-label">收藏数量</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="statCategories">0</div>
+                    <div class="stat-label">分类数量</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="main-panel">
+                <div class="panel-header">
+                    <div class="panel-title">文章管理</div>
+                    <button class="btn btn-primary" onclick="openModal()">
+                        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        新建文章
+                    </button>
+                </div>
+                <div class="article-list" id="articleList"></div>
+            </div>
+
+            <div class="sidebar-panel">
+                <div class="sidebar-card">
+                    <div class="sidebar-header">分类统计</div>
+                    <div class="category-list" id="categoryList"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-panel" style="margin-top: 24px;">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #666; vertical-align: middle; margin-right: 8px;"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
+                    知识交流池
+                    <span style="font-size: 13px; color: #999; font-weight: normal; margin-left: 8px;">查看用户留言并回复</span>
+                </div>
+            </div>
+            <div class="discussion-list" id="adminDiscussionList"></div>
+        </div>
+    </div>
+
+    <!-- 回复模态框 -->
+    <div class="modal" id="replyModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">回复留言</div>
+                <button class="modal-close" onclick="closeReplyModal()">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="replyPostId">
+                <div class="form-group">
+                    <label class="form-label">原留言内容</label>
+                    <div id="originalContent" style="padding: 12px; background: #f5f5f5; border-radius: 6px; font-size: 14px; color: #666; line-height: 1.6;"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">回复内容</label>
+                    <textarea class="form-textarea" id="replyContent" placeholder="请输入回复内容..." style="min-height: 120px;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeReplyModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitReply()">发送回复</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建/编辑文章模态框 -->
+    <div class="modal" id="articleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">新建文章</div>
+                <button class="modal-close" onclick="closeModal()">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="articleId">
+                <div class="form-group">
+                    <label class="form-label">文章标题</label>
+                    <input type="text" class="form-input" id="articleTitle" placeholder="请输入文章标题">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">文章分类</label>
+                    <select class="form-select" id="articleCategory"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">文章摘要</label>
+                    <input type="text" class="form-input" id="articleSummary" placeholder="请输入文章摘要">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">文章内容</label>
+                    <textarea class="form-textarea" id="articleContent" placeholder="请输入文章内容，支持 Markdown 格式"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveArticle()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const authToken = localStorage.getItem('token');
+        let allArticles = [];
+        let allCategories = [];
+        let allDiscussions = [];
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        async function loadData() {
+            try {
+                const [articlesRes, categoriesRes, discussionsRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/articles`),
+                    fetch(`${API_BASE}/api/categories`),
+                    fetch(`${API_BASE}/api/discussions`)
+                ]);
+                allArticles = await articlesRes.json();
+                allCategories = await categoriesRes.json();
+                allDiscussions = await discussionsRes.json();
+            } catch (err) {
+                console.error('加载数据失败', err);
+            }
+        }
+
+        function renderStats() {
+            document.getElementById('statArticles').textContent = allArticles.length;
+            document.getElementById('statViews').textContent = allArticles.reduce((sum, a) => sum + (a.views || 0), 0);
+            document.getElementById('statFavorites').textContent = allArticles.filter(a => a.isFavorite).length;
+            document.getElementById('statCategories').textContent = allCategories.length;
+        }
+
+        function renderArticleList() {
+            const container = document.getElementById('articleList');
+            if (allArticles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        <p>暂无文章，点击"新建文章"按钮添加</p>
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = allArticles.map(article => `
+                <div class="article-item">
+                    <div class="article-info">
+                        <div class="article-title">${article.title}</div>
+                        <div class="article-meta">${article.category} · ${article.author} · ${formatDate(article.created_at)} · 浏览 ${article.views || 0}</div>
+                    </div>
+                    <div class="article-actions">
+                        <button class="btn btn-default action-btn" onclick="editArticle(${article.id})">编辑</button>
+                        <button class="btn btn-danger action-btn" onclick="deleteArticle(${article.id})">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCategoryList() {
+            const container = document.getElementById('categoryList');
+            container.innerHTML = allCategories.map(cat => {
+                const count = allArticles.filter(a => a.category === cat.name).length;
+                return `
+                    <div class="category-item">
+                        <div class="category-name">
+                            <span>📁</span>
+                            <span>${cat.name}</span>
+                        </div>
+                        <span class="category-count">${count}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCategoryOptions() {
+            const select = document.getElementById('articleCategory');
+            select.innerHTML = allCategories.map(cat =>
+                `<option value="${cat.name}">${cat.name}</option>`
+            ).join('');
+        }
+
+        function openModal(isEdit = false) {
+            document.getElementById('articleModal').classList.add('active');
+            document.getElementById('modalTitle').textContent = isEdit ? '编辑文章' : '新建文章';
+            renderCategoryOptions();
+            if (!isEdit) {
+                document.getElementById('articleId').value = '';
+                document.getElementById('articleTitle').value = '';
+                document.getElementById('articleSummary').value = '';
+                document.getElementById('articleContent').value = '';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('articleModal').classList.remove('active');
+        }
+
+        async function saveArticle() {
+            const id = document.getElementById('articleId').value;
+            const title = document.getElementById('articleTitle').value.trim();
+            const category = document.getElementById('articleCategory').value;
+            const summary = document.getElementById('articleSummary').value.trim();
+            const content = document.getElementById('articleContent').value.trim();
+
+            if (!title) { alert('请输入文章标题'); return; }
+            if (!summary) { alert('请输入文章摘要'); return; }
+            if (!content) { alert('请输入文章内容'); return; }
+
+            const data = { title, category, summary, content };
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_BASE}/api/articles/${id}` : `${API_BASE}/api/articles`;
+
+            try {
+                await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                closeModal();
+                await loadData();
+                renderStats();
+                renderArticleList();
+                renderCategoryList();
+                alert(id ? '文章已更新' : '文章已创建');
+            } catch (err) {
+                alert('保存失败，请重试');
+            }
+        }
+
+        async function editArticle(id) {
+            const article = allArticles.find(a => a.id === id);
+            if (article) {
+                document.getElementById('articleId').value = article.id;
+                document.getElementById('articleTitle').value = article.title;
+                renderCategoryOptions();
+                document.getElementById('articleCategory').value = article.category;
+                document.getElementById('articleSummary').value = article.summary;
+                document.getElementById('articleContent').value = article.content;
+                openModal(true);
+            }
+        }
+
+        async function deleteArticle(id) {
+            if (!confirm('确定要删除这篇文章吗？此操作不可恢复。')) return;
+            try {
+                await fetch(`${API_BASE}/api/articles/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                await loadData();
+                renderStats();
+                renderArticleList();
+                renderCategoryList();
+            } catch (err) {
+                alert('删除失败');
+            }
+        }
+
+        function renderDiscussions() {
+            const container = document.getElementById('adminDiscussionList');
+            if (allDiscussions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
+                        <p>暂无用户留言</p>
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = allDiscussions.map(d => `
+                <div class="discussion-item">
+                    <div class="discussion-header">
+                        <div class="discussion-avatar" style="background: #1677ff">${(d.username || 'U').charAt(0).toUpperCase()}</div>
+                        <div class="discussion-meta">
+                            <div class="discussion-author">${d.username || '用户'}</div>
+                            <div class="discussion-time">${formatDate(d.created_at)}</div>
+                        </div>
+                        <span class="discussion-type ${d.status === 'replied' ? 'type-share' : 'type-request'}">${d.status === 'replied' ? '✅ 已回复' : '📚 待回复'}</span>
+                    </div>
+                    <div class="discussion-content">${escapeHtml(d.content)}</div>
+                    ${renderAdminReplies(d)}
+                    <div class="discussion-footer">
+                        <button class="btn btn-primary" style="padding: 6px 16px; font-size: 13px;" onclick="openReplyModal(${d.id})">
+                            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: white; vertical-align: middle; margin-right: 4px;"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
+                            回复
+                        </button>
+                        <button class="btn btn-danger" style="padding: 6px 16px; font-size: 13px;" onclick="deleteDiscussion(${d.id})">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAdminReplies(discussion) {
+            if (!discussion.reply) return '';
+            return `
+                <div class="discussion-replies">
+                    <div class="discussion-reply">
+                        <span class="reply-author">${discussion.replied_by || '管理员'}</span>
+                        <span class="reply-time">${formatDate(discussion.replied_at)}</span>
+                        <div style="margin-top: 4px;">${escapeHtml(discussion.reply)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function openReplyModal(id) {
+            const discussion = allDiscussions.find(d => d.id === id);
+            if (discussion) {
+                document.getElementById('replyPostId').value = id;
+                document.getElementById('originalContent').textContent = discussion.content;
+                document.getElementById('replyContent').value = '';
+                document.getElementById('replyModal').classList.add('active');
+            }
+        }
+
+        function closeReplyModal() {
+            document.getElementById('replyModal').classList.remove('active');
+        }
+
+        async function submitReply() {
+            const postId = parseInt(document.getElementById('replyPostId').value);
+            const reply = document.getElementById('replyContent').value.trim();
+            if (!reply) { alert('请输入回复内容'); return; }
+
+            try {
+                await fetch(`${API_BASE}/api/discussions/${postId}/reply`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ reply })
+                });
+                closeReplyModal();
+                await loadData();
+                renderDiscussions();
+                alert('回复成功！');
+            } catch (err) {
+                alert('回复失败');
+            }
+        }
+
+        async function deleteDiscussion(id) {
+            if (!confirm('确定要删除这条留言吗？')) return;
+            try {
+                await fetch(`${API_BASE}/api/discussions/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                await loadData();
+                renderDiscussions();
+            } catch (err) {
+                alert('删除失败');
+            }
+        }
+
+        // 初始化
+        (function() {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                const avatar = document.getElementById('userAvatar');
+                if (avatar && user.username) {
+                    avatar.textContent = user.username.charAt(0).toUpperCase();
+                }
+            }
+
+            document.getElementById('navSearch').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const keyword = this.value.trim();
+                    if (keyword) {
+                        window.location.href = 'index.html?search=' + encodeURIComponent(keyword);
+                    }
+                }
+            });
+
+            document.getElementById('articleModal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+
+            loadData().then(() => {
+                renderStats();
+                renderArticleList();
+                renderCategoryList();
+                renderDiscussions();
+            });
+        })();
+    </script>
+</body>
+</html>

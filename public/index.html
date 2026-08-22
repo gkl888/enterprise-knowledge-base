@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业知识库</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* ========== 登录页面样式 ========== */
+        .login-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .login-logo svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 400px;
+            padding: 32px;
+        }
+
+        .login-box-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .login-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .login-tab.active {
+            background: white;
+            color: #1a1a1a;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1677ff;
+        }
+
+        .form-input::placeholder {
+            color: #bfbfbf;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #0d7a3d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .login-btn:hover {
+            background: #0a6b35;
+        }
+
+        .login-footer {
+            margin-top: 20px;
+            text-align: center;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-footer-text {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* ========== 主页面样式 ========== */
+        .main-page {
+            display: none;
+            min-height: 100vh;
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            background: #2c3e50;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .nav-brand svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-item {
+            padding: 8px 16px;
+            color: rgba(255,255,255,0.85);
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            color: white;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 6px 12px;
+            gap: 8px;
+        }
+
+        .search-box svg {
+            width: 16px;
+            height: 16px;
+            fill: rgba(255,255,255,0.6);
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 13px;
+            width: 140px;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: #5a6c7d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* 面包屑 */
+        .breadcrumb {
+            background: white;
+            padding: 12px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .breadcrumb svg {
+            width: 14px;
+            height: 14px;
+            fill: #999;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            padding: 24px 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 欢迎卡片 */
+        .welcome-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+        }
+
+        .welcome-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .welcome-icon {
+            width: 48px;
+            height: 48px;
+            background: #e6f7ff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .welcome-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: #1677ff;
+        }
+
+        .welcome-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .welcome-desc {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+        }
+
+        .stat-tag {
+            padding: 6px 16px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 0;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input-wrapper input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #fafafa;
+        }
+
+        .search-input-wrapper input:focus {
+            border-color: #0d7a3d;
+            background: white;
+        }
+
+        .search-btn {
+            padding: 12px 28px;
+            background: #0d7a3d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+            margin-left: 8px;
+        }
+
+        .search-btn:hover {
+            background: #0a6b35;
+        }
+
+        .search-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: white;
+        }
+
+        /* 下方内容区 - 侧边栏和文章列表并排 */
+        .content-bottom {
+            display: flex;
+            gap: 24px;
+        }
+
+        /* 左侧边栏 */
+        .sidebar {
+            width: 220px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .category-list {
+            background: white;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .category-item:hover {
+            background: #f5f5f5;
+        }
+
+        .category-item.active {
+            background: #e6f7ff;
+            color: #1677ff;
+        }
+
+        .category-item svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* 右侧内容 */
+        .content-area {
+            flex: 1;
+        }
+
+        /* 文章列表 */
+        .article-list-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .article-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .article-list-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .article-list-title svg {
+            width: 18px;
+            height: 18px;
+            fill: #666;
+        }
+
+        .sort-option {
+            font-size: 13px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .article-item {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.2s;
+        }
+
+        .article-item:last-child {
+            border-bottom: none;
+        }
+
+        .article-item:hover {
+            background: #fafafa;
+        }
+
+        .article-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .article-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1677ff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .article-title:hover {
+            text-decoration: underline;
+        }
+
+        .article-views {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #999;
+        }
+
+        .article-views svg {
+            width: 14px;
+            height: 14px;
+            fill: #999;
+        }
+
+        .article-summary {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .article-tag {
+            padding: 4px 12px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .article-author {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #999;
+        }
+
+        .author-avatar {
+            width: 20px;
+            height: 20px;
+            background: #e8e8e8;
+            border-radius: 50%;
+        }
+
+        .article-date {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            fill: #d9d9d9;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: #999;
+        }
+
+        /* 浮动按钮 */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            width: 48px;
+            height: 48px;
+            background: #2c3e50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
+        }
+
+        .fab:hover {
+            transform: scale(1.05);
+        }
+
+        .fab svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div class="login-page" id="loginPage">
+        <div class="login-header">
+            <div class="login-logo">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            </div>
+            <div class="login-title">企业知识库</div>
+            <div class="login-subtitle">统一沉淀、检索和维护公司业务知识</div>
+        </div>
+
+        <div class="login-box">
+            <div class="login-box-header">登录到知识库</div>
+            
+            <div class="login-tabs">
+                <div class="login-tab active" onclick="switchTab(this, 'login')">登录</div>
+                <div class="login-tab" onclick="switchTab(this, 'register')">注册</div>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" placeholder="请输入用户名" id="username" value="">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" placeholder="请输入密码" id="password" value="">
+                </div>
+                <button type="submit" class="login-btn">登录</button>
+            </form>
+        </div>
+
+        <div class="login-footer">
+            <div class="login-footer-text">业务讲堂勤充电，知识武装勇向前</div>
+        </div>
+    </div>
+
+    <!-- 主页面 -->
+    <div class="main-page" id="mainPage">
+        <!-- 顶部导航栏 -->
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="index.html" class="nav-brand">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    企业知识库
+                </a>
+                <div class="nav-menu">
+                    <a href="index.html" class="nav-item active">首页</a>
+                    <a href="favorites.html" class="nav-item">我的收藏</a>
+                    <a href="discussion.html" class="nav-item">知识交流池</a>
+                    <a href="admin.html" class="nav-item">管理后台</a>
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    <input type="text" placeholder="快速搜索知识" id="navSearch">
+                </div>
+                <div class="user-avatar">系</div>
+            </div>
+        </nav>
+
+        <!-- 面包屑 -->
+        <div class="breadcrumb">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            知识库 / 业务知识沉淀
+        </div>
+
+        <!-- 主内容 -->
+        <div class="main-content">
+            <!-- 欢迎卡片 -->
+            <div class="welcome-card">
+                <div class="welcome-header">
+                    <div class="welcome-title-section">
+                        <div class="welcome-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        </div>
+                        <div>
+                            <div class="welcome-title">企业知识库</div>
+                            <div class="welcome-desc">像浏览代码仓库一样浏览、搜索和维护业务知识。</div>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <span class="stat-tag" id="statArticles">文章 0</span>
+                        <span class="stat-tag" id="statCategories">分类 4</span>
+                    </div>
+                </div>
+                <div class="search-section">
+                    <div class="search-input-wrapper">
+                        <input type="text" placeholder="Search or jump to..." id="searchInput">
+                    </div>
+                    <button class="search-btn" id="searchBtn">
+                        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        搜索
+                    </button>
+                </div>
+            </div>
+
+            <!-- 下方内容区：侧边栏 + 文章列表 -->
+            <div class="content-bottom">
+                <!-- 左侧边栏 -->
+                <aside class="sidebar">
+                    <div class="sidebar-header">文章分类</div>
+                    <div class="category-list" id="categoryList">
+                        <!-- 分类列表将在这里动态加载 -->
+                    </div>
+                </aside>
+
+                <!-- 右侧文章列表 -->
+                <div class="content-area">
+                    <div class="article-list-card">
+                        <div class="article-list-header">
+                            <div class="article-list-title">
+                                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                                知识文章
+                            </div>
+                            <div class="sort-option">按更新时间排序</div>
+                        </div>
+                        <div id="articleList">
+                            <!-- 文章列表将在这里动态加载 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 浮动按钮 -->
+        <div class="fab" onclick="location.href='admin.html'">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </div>
+    </div>
+
+    <script>
+        // API 配置
+        const API_BASE = '/api';
+        let authToken = null;
+        let currentUser = null;
+        
+        // 当前选中的分类
+        let currentCategory = 'all';
+        let searchKeyword = '';
+        let allCategories = [];
+        let allArticles = [];
+
+        // 切换登录/注册标签
+        function switchTab(element, type) {
+            document.querySelectorAll('.login-tab').forEach(tab => tab.classList.remove('active'));
+            element.classList.add('active');
+            
+            const btn = document.querySelector('.login-btn');
+            btn.textContent = type === 'login' ? '登录' : '注册';
+        }
+
+        // 登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                alert('请输入用户名和密码');
+                return;
+            }
+            
+            const btn = document.querySelector('.login-btn');
+            btn.textContent = '登录中...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    alert(data.error || '登录失败');
+                    btn.textContent = '登录';
+                    btn.disabled = false;
+                    return;
+                }
+                
+                authToken = data.token;
+                currentUser = data.user;
+                localStorage.setItem('token', authToken);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainPage').style.display = 'block';
+                initPage();
+            } catch (err) {
+                alert('网络错误，请重试');
+                btn.textContent = '登录';
+                btn.disabled = false;
+            }
+        });
+
+        // 初始化页面
+        async function initPage() {
+            // 检查URL参数
+            const urlParams = new URLSearchParams(window.location.search);
+            searchKeyword = urlParams.get('search') || '';
+            if (searchKeyword) {
+                document.getElementById('searchInput').value = searchKeyword;
+            }
+
+            // 加载当前用户
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                const avatar = document.querySelector('.user-avatar');
+                if (avatar && currentUser.username) {
+                    avatar.textContent = currentUser.username.charAt(0).toUpperCase();
+                }
+            }
+
+            await loadData();
+            if (searchKeyword) {
+                renderArticles();
+            }
+        }
+
+        // 加载所有数据
+        async function loadData() {
+            try {
+                const [categoriesRes, articlesRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/categories`),
+                    fetch(`${API_BASE}/api/articles`)
+                ]);
+                allCategories = await categoriesRes.json();
+                allArticles = await articlesRes.json();
+                renderCategories();
+                renderArticles();
+                updateStats();
+            } catch (err) {
+                console.error('加载数据失败', err);
+            }
+        }
+
+        // 渲染分类列表
+        function renderCategories() {
+            const container = document.getElementById('categoryList');
+            
+            // 全部文章
+            let html = `
+                <div class="category-item ${currentCategory === 'all' ? 'active' : ''}" onclick="selectCategory('all', '全部')">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                    全部文章
+                </div>
+            `;
+            
+            html += allCategories.map(cat => `
+                <div class="category-item ${currentCategory === cat.name ? 'active' : ''}" onclick="selectCategory('${cat.name}', '${cat.name}')">
+                    <svg viewBox="0 0 24 24"><path d="${getCategoryIcon('list')}"/></svg>
+                    ${cat.name}
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // 获取分类图标
+        function getCategoryIcon(icon) {
+            const icons = {
+                list: 'M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z',
+                work: 'M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z',
+                account_tree: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z',
+                description: 'M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z',
+                check_circle: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'
+            };
+            return icons[icon] || icons.list;
+        }
+
+        // 选择分类
+        function selectCategory(id, name) {
+            currentCategory = id;
+            searchKeyword = '';
+            document.getElementById('searchInput').value = '';
+            renderCategories();
+            renderArticles();
+        }
+        
+        // 获取图标路径
+        function getIconForCategory(name) {
+            const icons = {
+                '产品知识': 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z',
+                '业务流程': 'M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z',
+                '规章制度': 'M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z',
+                '技术支持': 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'
+            };
+            return icons[name] || 'M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z';
+        }
+
+        // 渲染文章列表
+        function renderArticles() {
+            const container = document.getElementById('articleList');
+            let articles;
+
+            if (searchKeyword) {
+                articles = allArticles.filter(a => 
+                    a.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+                    (a.summary || '').toLowerCase().includes(searchKeyword.toLowerCase()) ||
+                    (a.content || '').toLowerCase().includes(searchKeyword.toLowerCase())
+                );
+            } else if (currentCategory === 'all') {
+                articles = allArticles;
+            } else {
+                articles = allArticles.filter(a => a.category === currentCategory);
+            }
+
+            if (articles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                        <p>暂无文章</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = articles.map(article => `
+                <div class="article-item">
+                    <div class="article-header">
+                        <a href="article.html?id=${article.id}" class="article-title">${article.title}</a>
+                        <div class="article-views">
+                            <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            ${article.views || 0}
+                        </div>
+                    </div>
+                    <div class="article-summary">${article.summary || ''}</div>
+                    <div class="article-meta">
+                        <span class="article-tag">${article.category}</span>
+                        <div class="article-author">
+                            <div class="author-avatar"></div>
+                            <span>作者：${article.author}</span>
+                        </div>
+                        <span class="article-date">${formatDate(article.created_at)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 格式化日期
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        // 更新统计
+        function updateStats() {
+            document.getElementById('statArticles').textContent = `文章 ${allArticles.length}`;
+            document.getElementById('statCategories').textContent = `分类 ${allCategories.length}`;
+        }
+
+        // 搜索功能
+        document.getElementById('searchBtn').addEventListener('click', async function() {
+            searchKeyword = document.getElementById('searchInput').value.trim();
+            currentCategory = 'all';
+            await loadArticles();
+            renderCategories();
+            renderArticles();
+        });
+
+        document.getElementById('searchInput').addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                searchKeyword = this.value.trim();
+                currentCategory = 'all';
+                await loadArticles();
+                renderCategories();
+                renderArticles();
+            }
+        });
+
+        // 导航搜索
+        document.getElementById('navSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const keyword = this.value.trim();
+                if (keyword) {
+                    window.location.href = 'index.html?search=' + encodeURIComponent(keyword);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章详情 - 企业知识库</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: #2c3e50; height: 56px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 24px; position: sticky; top: 0; z-index: 100;
+        }
+        .nav-left { display: flex; align-items: center; gap: 32px; }
+        .nav-brand {
+            display: flex; align-items: center; gap: 10px;
+            color: white; font-size: 16px; font-weight: 500; text-decoration: none;
+        }
+        .nav-brand svg { width: 20px; height: 20px; fill: white; }
+        .nav-menu { display: flex; gap: 8px; }
+        .nav-item {
+            padding: 8px 16px; color: rgba(255,255,255,0.85); font-size: 14px;
+            cursor: pointer; border-radius: 4px; transition: all 0.2s; text-decoration: none;
+        }
+        .nav-item:hover { color: white; background: rgba(255,255,255,0.1); }
+        .nav-item.active { color: white; background: rgba(255,255,255,0.15); }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        .search-box {
+            display: flex; align-items: center; background: rgba(255,255,255,0.1);
+            border-radius: 4px; padding: 6px 12px; gap: 8px;
+        }
+        .search-box svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.6); }
+        .search-box input {
+            background: transparent; border: none; color: white;
+            font-size: 13px; width: 140px; outline: none;
+        }
+        .search-box input::placeholder { color: rgba(255,255,255,0.5); }
+        .user-avatar {
+            width: 32px; height: 32px; background: #5a6c7d; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 13px;
+        }
+        .breadcrumb {
+            background: white; padding: 12px 24px;
+            border-bottom: 1px solid #e8e8e8; font-size: 13px; color: #666;
+        }
+        .breadcrumb a { color: #1677ff; text-decoration: none; }
+        .main-content { padding: 24px 32px; max-width: 900px; margin: 0 auto; }
+        .back-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; background: white; border: 1px solid #e8e8e8;
+            border-radius: 6px; font-size: 14px; color: #666;
+            cursor: pointer; text-decoration: none; margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+        .back-btn:hover { border-color: #1677ff; color: #1677ff; }
+        .back-btn svg { width: 16px; height: 16px; fill: currentColor; }
+        .article-card {
+            background: white; border-radius: 12px; padding: 32px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .article-title {
+            font-size: 26px; font-weight: 600; color: #1a1a1a;
+            margin-bottom: 16px; line-height: 1.4;
+        }
+        .article-meta {
+            display: flex; align-items: center; gap: 16px;
+            padding-bottom: 20px; margin-bottom: 24px;
+            border-bottom: 1px solid #f0f0f0; flex-wrap: wrap;
+        }
+        .article-tag {
+            padding: 4px 12px; background: #f5f5f5; border-radius: 4px;
+            font-size: 12px; color: #666;
+        }
+        .article-author {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 13px; color: #999;
+        }
+        .author-avatar {
+            width: 20px; height: 20px; background: #e8e8e8; border-radius: 50%;
+        }
+        .article-date { font-size: 13px; color: #999; }
+        .article-views {
+            display: flex; align-items: center; gap: 6px; font-size: 13px; color: #999;
+        }
+        .article-views svg { width: 14px; height: 14px; fill: #999; }
+        .article-actions { display: flex; gap: 8px; margin-left: auto; }
+        .action-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; background: white; border: 1px solid #e8e8e8;
+            border-radius: 6px; font-size: 13px; color: #666; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { border-color: #1677ff; color: #1677ff; }
+        .action-btn.favorite { background: #fff1f0; border-color: #ffccc7; color: #ff4d4f; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        .article-content { font-size: 15px; line-height: 1.8; color: #333; }
+        .article-content h2 {
+            font-size: 20px; font-weight: 600; margin: 24px 0 12px;
+            padding-left: 12px; border-left: 4px solid #0d7a3d;
+        }
+        .article-content h3 { font-size: 18px; margin: 20px 0 10px; }
+        .article-content p { margin: 12px 0; }
+        .article-content ul, .article-content ol { margin: 12px 0; padding-left: 24px; }
+        .article-content li { margin: 6px 0; }
+        .not-found { text-align: center; padding: 60px 20px; }
+        .not-found svg { width: 64px; height: 64px; fill: #d9d9d9; margin-bottom: 16px; }
+        .not-found h2 { font-size: 18px; color: #666; margin-bottom: 8px; }
+        .not-found p { font-size: 14px; color: #999; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="index.html" class="nav-brand">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                企业知识库
+            </a>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-item">首页</a>
+                <a href="favorites.html" class="nav-item">我的收藏</a>
+                <a href="discussion.html" class="nav-item">知识交流池</a>
+                <a href="admin.html" class="nav-item">管理后台</a>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" placeholder="快速搜索知识" id="navSearch">
+            </div>
+            <div class="user-avatar" id="userAvatar">系</div>
+        </div>
+    </nav>
+
+    <div class="breadcrumb">
+        <a href="index.html">知识库</a> / <a href="index.html">业务知识沉淀</a> / <span id="breadcrumbTitle">文章详情</span>
+    </div>
+
+    <div class="main-content">
+        <a href="index.html" class="back-btn">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            返回列表
+        </a>
+        <div id="articleContainer"></div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let authToken = null;
+        let currentUser = null;
+        let isFavorite = false;
+        let currentArticleId = null;
+
+        function getUrlParam(name) {
+            return new URLSearchParams(window.location.search).get(name);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function formatContent(content) {
+            if (!content) return '';
+            // 处理 Markdown
+            return content
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n- /g, '\n<br>• ')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/^(.*)$/, '<p>$1</p>');
+        }
+
+        async function loadArticle() {
+            const articleId = getUrlParam('id');
+            const container = document.getElementById('articleContainer');
+
+            if (!articleId) {
+                showNotFound(container, '请检查链接是否正确');
+                return;
+            }
+
+            currentArticleId = articleId;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/articles/${articleId}`);
+                if (!res.ok) {
+                    showNotFound(container, '该文章可能已被删除');
+                    return;
+                }
+                const article = await res.json();
+                
+                document.getElementById('breadcrumbTitle').textContent = article.title;
+                
+                // 检查是否已收藏
+                isFavorite = false;
+                if (authToken) {
+                    try {
+                        const favRes = await fetch(`${API_BASE}/api/favorites`, {
+                            headers: { 'Authorization': `Bearer ${authToken}` }
+                        });
+                        const favorites = await favRes.json();
+                        isFavorite = favorites.some(f => f.id == articleId);
+                    } catch (e) {}
+                }
+
+                container.innerHTML = `
+                    <div class="article-card">
+                        <h1 class="article-title">${article.title}</h1>
+                        <div class="article-meta">
+                            <span class="article-tag">${article.category}</span>
+                            <div class="article-author">
+                                <div class="author-avatar"></div>
+                                <span>作者：${article.author}</span>
+                            </div>
+                            <span class="article-date">${formatDate(article.created_at)}</span>
+                            <div class="article-views">
+                                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                ${article.views || 0} 次浏览
+                            </div>
+                            <div class="article-actions">
+                                <button class="action-btn ${isFavorite ? 'favorite' : ''}" onclick="toggleFavorite()">
+                                    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                    ${isFavorite ? '已收藏' : '收藏'}
+                                </button>
+                                <button class="action-btn" onclick="shareArticle()">
+                                    <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                                    分享
+                                </button>
+                            </div>
+                        </div>
+                        <div class="article-content">${formatContent(article.content)}</div>
+                    </div>
+                `;
+            } catch (err) {
+                showNotFound(container, '加载失败，请稍后重试');
+            }
+        }
+
+        function showNotFound(container, msg) {
+            container.innerHTML = `
+                <div class="not-found">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    <h2>文章不存在</h2>
+                    <p>${msg}</p>
+                </div>
+            `;
+        }
+
+        async function toggleFavorite() {
+            if (!authToken) {
+                alert('请先登录');
+                return;
+            }
+            try {
+                const method = isFavorite ? 'DELETE' : 'POST';
+                await fetch(`${API_BASE}/api/favorites/${currentArticleId}`, {
+                    method,
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                isFavorite = !isFavorite;
+                loadArticle();
+            } catch (err) {
+                alert('操作失败');
+            }
+        }
+
+        function shareArticle() {
+            const url = window.location.href;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(() => alert('链接已复制'));
+            } else {
+                alert('链接：' + url);
+            }
+        }
+
+        // 初始化
+        (function() {
+            authToken = localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                const avatar = document.getElementById('userAvatar');
+                if (avatar && currentUser.username) {
+                    avatar.textContent = currentUser.username.charAt(0).toUpperCase();
+                }
+            }
+            loadArticle();
+
+            document.getElementById('navSearch').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const keyword = this.value.trim();
+                    if (keyword) {
+                        window.location.href = 'index.html?search=' + encodeURIComponent(keyword);
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
