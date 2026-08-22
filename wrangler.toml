@@ -1,4 +1,7 @@
 name = "enterprise-knowledge-base"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = "public"
+
+# Pages 配置：静态资源目录
+[site]
+bucket = "./public"

@@ -1,7 +1,6 @@
+import type { PagesFunction } from '@cloudflare/workers-types'
 import app from '../../src/app'
 
-export default {
-  async fetch(request: Request): Promise<Response> {
-    return app.fetch(request)
-  },
+export const onRequest: PagesFunction = async (context) => {
+  return app.fetch(context.request, context.env, context)
 }
