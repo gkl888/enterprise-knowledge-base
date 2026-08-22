@@ -1,13 +1,4 @@
-name = "enterprise-knowledge-base-api"
-main = "src/index.ts"
-compatibility_date = "2024-01-01"
-
-# D1 数据库绑定
-[[d1_databases]]
-binding = "DB"
-database_name = "knowledge-base-db"
-database_id = "0ecfbb6a-b50b-4142-9669-b724821f7d9c"
-
-# 静态资源配置（前端页面）
-[assets]
-directory = "public"
+name = "enterprise-knowledge-base"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "public"
