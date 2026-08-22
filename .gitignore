@@ -1,1 +1,6 @@
-.vercel
+node_modules/
+.vercel/
+.wrangler/
+*.log
+.env
+.env.local
