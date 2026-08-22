@@ -1,0 +1,8 @@
+{
+  "name": "enterprise-knowledge-base",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'using esm.sh CDN, no build needed'"
+  }
+}

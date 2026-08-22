@@ -1,7 +1,7 @@
-// Cloudflare Pages _worker.ts - 完整 API 服务
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import { createClient } from '@supabase/supabase-js'
+// Cloudflare Pages _worker.js - 使用 esm.sh CDN
+import { Hono } from 'https://esm.sh/hono@4.6.0'
+import { cors } from 'https://esm.sh/hono@4.6.0/cors'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const app = new Hono()
 
@@ -11,7 +11,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowHeaders: ['Content-Type', 'Authorization'] }))
 
-function getAuth(c: any): { userId: number; username: string; role: string } | null {
+function getAuth(c) {
   const auth = c.req.header('Authorization')
   if (!auth) return null
   try {
@@ -41,7 +41,7 @@ app.get('/api/articles', async (c) => {
   let result = data || []
   if (search) {
     const s = search.toLowerCase()
-    result = result.filter((a: any) => (a.title || '').toLowerCase().includes(s) || (a.content || '').toLowerCase().includes(s))
+    result = result.filter((a) => (a.title || '').toLowerCase().includes(s) || (a.content || '').toLowerCase().includes(s))
   }
   return c.json(result)
 })
@@ -55,7 +55,7 @@ app.get('/api/articles/:id', async (c) => {
   return c.json({ ...article, views: (article.views || 0) + 1 })
 })
 
-// 创建文章（管理员）
+// 创建文章
 app.post('/api/articles', async (c) => {
   const user = getAuth(c); if (!user) return c.json({ error: '未登录' }, 401)
   if (user.role !== 'admin') return c.json({ error: '无权限' }, 403)
@@ -106,10 +106,10 @@ app.get('/api/favorites', async (c) => {
   const { data: favs, error } = await sb.from('favorites').select('article_id, created_at').eq('user_id', user.userId)
   if (error) return c.json({ error: error.message }, 500)
   if (!favs || favs.length === 0) return c.json([])
-  const articleIds = favs.map((f: any) => f.article_id)
+  const articleIds = favs.map((f) => f.article_id)
   const { data: articles } = await sb.from('articles').select('*').in('id', articleIds)
-  const result = (articles || []).map((a: any) => {
-    const fav = favs.find((f: any) => f.article_id === a.id)
+  const result = (articles || []).map((a) => {
+    const fav = favs.find((f) => f.article_id === a.id)
     return { ...a, favorite_at: fav?.created_at }
   })
   return c.json(result)
@@ -147,7 +147,7 @@ app.post('/api/discussions', async (c) => {
   return c.json({ message: '提交成功' })
 })
 
-// 获取留言列表（管理员）
+// 获取留言列表
 app.get('/api/discussions', async (c) => {
   const user = getAuth(c); if (!user) return c.json({ error: '未登录' }, 401)
   if (user.role !== 'admin') return c.json({ error: '无权限' }, 403)
@@ -181,15 +181,11 @@ app.delete('/api/discussions/:id', async (c) => {
 
 // Pages 入口
 export default {
-  async fetch(request: Request, env: any, ctx: any): Promise<Response> {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url)
-    
-    // API 路由走 Hono
     if (url.pathname.startsWith('/api/')) {
       return app.fetch(request, env, ctx)
     }
-    
-    // 静态文件走 ASSETS
     return env.ASSETS.fetch(request)
   }
 }
