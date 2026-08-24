@@ -225,6 +225,32 @@
         .empty-state { text-align: center; padding: 40px 20px; }
         .empty-state svg { width: 48px; height: 48px; fill: #d9d9d9; margin-bottom: 12px; }
         .empty-state p { font-size: 14px; color: #999; }
+
+        /* 用户管理 */
+        .user-list { max-height: 500px; overflow-y: auto; }
+        .user-item { display: flex; align-items: center; padding: 14px 24px; border-bottom: 1px solid #f5f5f5; }
+        .user-item:last-child { border-bottom: none; }
+        .user-item:hover { background: #fafafa; }
+        .user-avatar-lg { width: 36px; height: 36px; border-radius: 50%; background: #1677ff; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; margin-right: 12px; flex-shrink: 0; }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: 14px; font-weight: 500; color: #1a1a1a; }
+        .user-name .role-tag { font-size: 11px; padding: 1px 6px; border-radius: 3px; margin-left: 8px; font-weight: normal; }
+        .role-tag.admin { background: #fff1f0; color: #f5222d; }
+        .role-tag.user { background: #f0f5ff; color: #1677ff; }
+        .user-meta { font-size: 12px; color: #999; margin-top: 4px; }
+        .status-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+        .status-tag.active { background: #f6ffed; color: #52c41a; }
+        .status-tag.disabled { background: #fff1f0; color: #f5222d; }
+        .user-actions { display: flex; gap: 8px; }
+        /* 日志 */
+        .log-list { max-height: 600px; overflow-y: auto; }
+        .log-item { padding: 12px 24px; border-bottom: 1px solid #f5f5f5; font-size: 13px; display: flex; gap: 12px; align-items: flex-start; }
+        .log-item:hover { background: #fafafa; }
+        .log-time { color: #999; font-size: 12px; min-width: 150px; font-family: monospace; }
+        .log-user { color: #1677ff; font-weight: 500; min-width: 80px; }
+        .log-action { color: #52c41a; min-width: 140px; }
+        .log-action.delete_article, .log-action.delete_user, .log-action.delete_discussion, .log-action.login_failed, .log-action.login_blocked { color: #f5222d; }
+        .log-detail { color: #666; flex: 1; word-break: break-all; }
     </style>
 </head>
 <body>
@@ -330,6 +356,52 @@
             </div>
             <div class="discussion-list" id="adminDiscussionList"></div>
         </div>
+
+        <!-- 用户管理 -->
+        <div class="main-panel" style="margin-top: 24px;">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #666; vertical-align: middle; margin-right: 8px;"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    用户管理
+                    <span style="font-size: 13px; color: #999; font-weight: normal; margin-left: 8px;">管理所有账号，可新建、重置密码、启用/禁用</span>
+                </div>
+                <button class="btn btn-primary" onclick="openUserModal()">
+                    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    新建用户
+                </button>
+            </div>
+            <div class="article-list" id="userList"></div>
+        </div>
+
+        <!-- 操作日志 -->
+        <div class="main-panel" style="margin-top: 24px;">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #666; vertical-align: middle; margin-right: 8px;"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                    操作日志
+                    <span style="font-size: 13px; color: #999; font-weight: normal; margin-left: 8px;">所有账号的关键操作记录（最近 200 条）</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" class="form-input" id="logFilterUser" placeholder="按用户名筛选" style="width: 160px; padding: 6px 12px; font-size: 13px;">
+                    <select class="form-select" id="logFilterAction" style="width: 140px; padding: 6px 12px; font-size: 13px;">
+                        <option value="">全部操作</option>
+                        <option value="login">登录</option>
+                        <option value="login_failed">登录失败</option>
+                        <option value="create_article">新建文章</option>
+                        <option value="update_article">更新文章</option>
+                        <option value="delete_article">删除文章</option>
+                        <option value="create_discussion">发表留言</option>
+                        <option value="reply_discussion">回复留言</option>
+                        <option value="delete_discussion">删除留言</option>
+                        <option value="create_user">新建用户</option>
+                        <option value="update_user">修改用户</option>
+                        <option value="delete_user">删除用户</option>
+                    </select>
+                    <button class="btn btn-primary" style="padding: 6px 16px;" onclick="loadLogs()">查询</button>
+                </div>
+            </div>
+            <div class="article-list" id="logList"></div>
+        </div>
     </div>
 
     <!-- 回复模态框 -->
@@ -359,7 +431,41 @@
         </div>
     </div>
 
-    <!-- 新建/编辑文章模态框 -->
+
+    <!-- 新建用户模态框 -->
+    <div class="modal" id="userModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <div class="modal-title">新建用户</div>
+                <button class="modal-close" onclick="closeUserModal()">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="newUsername" placeholder="2-20 个字符">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">初始密码</label>
+                    <input type="text" class="form-input" id="newPassword" placeholder="至少 4 个字符">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">角色</label>
+                    <select class="form-select" id="newRole">
+                        <option value="user">普通用户（可登录、收藏、留言）</option>
+                        <option value="admin">管理员（全部权限）</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeUserModal()">取消</button>
+                <button class="btn btn-primary" onclick="createUser()">创建</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- 新建/编辑文章模态框 -->
     <div class="modal" id="articleModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -576,7 +682,7 @@
                             <div class="discussion-author">${d.username || '用户'}</div>
                             <div class="discussion-time">${formatDate(d.created_at)}</div>
                         </div>
-                        <span class="discussion-type ${d.status === 'replied' ? 'type-shared' : 'type-pending' : 'type-request'}">${d.status === 'replied' ? '✅已回复 : '📚 待回 ?}</span>
+                        <span class="discussion-type ${d.status === 'replied' ? 'type-share' : 'type-request'}">${d.status === 'replied' ? '✅已回复' : '📚 待回复'}</span>
                     </div>
                     <div class="discussion-content">${escapeHtml(d.content)}</div>
                     ${renderAdminReplies(d)}
@@ -596,7 +702,7 @@
             return `
                 <div class="discussion-replies">
                     <div class="discussion-reply">
-                        <span class="reply-author">${discussion.replied_by || '管理员}</span>
+                        <span class="reply-author">${discussion.replied_by || '管理员'}</span>
                         <span class="reply-time">${formatDate(discussion.replied_at)}</span>
                         <div style="margin-top: 4px;">${escapeHtml(discussion.reply)}</div>
                     </div>
@@ -661,7 +767,165 @@
             }
         }
 
-        // 初始化        (function() {
+
+        // ============= 用户管理 =============
+        let allUsers = [];
+
+        function renderUserList() {
+            const container = document.getElementById('userList');
+            if (!allUsers || allUsers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>暂无用户</p></div>';
+                return;
+            }
+            container.innerHTML = allUsers.map(u => {
+                const isSelf = (u.id === (user && user.userId));
+                return `
+                    <div class="user-item">
+                        <div class="user-avatar-lg">${(u.username || 'U').charAt(0).toUpperCase()}</div>
+                        <div class="user-info">
+                            <div class="user-name">${u.username}<span class="role-tag ${u.role}">${u.role === 'admin' ? '管理员' : '普通用户'}</span><span class="status-tag ${u.status}">${u.status === 'disabled' ? '已禁用' : '正常'}</span></div>
+                            <div class="user-meta">注册：${formatDate(u.created_at)} · 最后登录：${formatDateTime(u.last_login_at)}</div>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn btn-default action-btn" onclick="resetUserPassword(${u.id}, '${u.username}')">重置密码</button>
+                            ${u.status === 'disabled'
+                                ? `<button class="btn btn-primary action-btn" onclick="toggleUserStatus(${u.id}, 'active')">启用</button>`
+                                : `<button class="btn btn-default action-btn" onclick="toggleUserStatus(${u.id}, 'disabled')" ${isSelf ? 'disabled style=opacity:0.5;' : ''}>禁用</button>`
+                            }
+                            <button class="btn btn-danger action-btn" onclick="deleteUser(${u.id}, '${u.username}')" ${isSelf ? 'disabled style=opacity:0.5;' : ''}>删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openUserModal() {
+            document.getElementById('userModal').classList.add('active');
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newRole').value = 'user';
+        }
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+        async function createUser() {
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newPassword').value.trim();
+            const role = document.getElementById('newRole').value;
+            if (!username || !password) { alert('请输入用户名和密码'); return; }
+            if (username.length < 2) { alert('用户名至少 2 个字符'); return; }
+            if (password.length < 4) { alert('密码至少 4 个字符'); return; }
+            try {
+                const res = await fetch(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+                    body: JSON.stringify({ username, password, role })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || '创建失败'); return; }
+                closeUserModal();
+                await loadUsers();
+                renderUserList();
+                alert('用户已创建');
+            } catch (err) { alert('网络错误'); }
+        }
+        async function loadUsers() {
+            try {
+                const res = await fetch(`${API_BASE}/users`, { headers: { 'Authorization': 'Bearer ' + authToken } });
+                if (res.status === 403) { document.getElementById('userList').innerHTML = '<div class="empty-state"><p>仅管理员可查看</p></div>'; return; }
+                allUsers = await res.json();
+            } catch (err) { console.error('loadUsers', err); }
+        }
+        async function resetUserPassword(id, username) {
+            const np = prompt('为用户「' + username + '」设置新密码（至少 4 个字符）');
+            if (!np) return;
+            if (np.length < 4) { alert('密码至少 4 个字符'); return; }
+            try {
+                const res = await fetch(`${API_BASE}/users/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+                    body: JSON.stringify({ password: np })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || '重置失败'); return; }
+                alert('密码已重置');
+            } catch (err) { alert('网络错误'); }
+        }
+        async function toggleUserStatus(id, newStatus) {
+            if (!confirm('确定要将此账号状态改为「' + (newStatus === 'disabled' ? '禁用' : '启用') + '」吗？')) return;
+            try {
+                const res = await fetch(`${API_BASE}/users/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || '操作失败'); return; }
+                await loadUsers();
+                renderUserList();
+            } catch (err) { alert('网络错误'); }
+        }
+        async function deleteUser(id, username) {
+            if (!confirm('确定要删除用户「' + username + '」吗？此操作不可恢复')) return;
+            try {
+                const res = await fetch(`${API_BASE}/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + authToken }
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || '删除失败'); return; }
+                await loadUsers();
+                renderUserList();
+                alert('用户已删除');
+            } catch (err) { alert('网络错误'); }
+        }
+
+        // ============= 操作日志 =============
+        let allLogs = [];
+        const ACTION_LABELS = {
+            login: '登录', login_failed: '登录失败', login_blocked: '登录被拒',
+            create_article: '新建文章', update_article: '更新文章', delete_article: '删除文章',
+            create_discussion: '发表留言', reply_discussion: '回复留言', delete_discussion: '删除留言',
+            create_user: '新建用户', update_user: '修改用户', delete_user: '删除用户',
+            favorite: '收藏文章', unfavorite: '取消收藏'
+        };
+        async function loadLogs() {
+            const u = document.getElementById('logFilterUser').value.trim();
+            const a = document.getElementById('logFilterAction').value;
+            let url = API_BASE + '/logs?';
+            if (u) url += 'username=' + encodeURIComponent(u) + '&';
+            if (a) url += 'action=' + encodeURIComponent(a) + '&';
+            try {
+                const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + authToken } });
+                if (res.status === 403) { document.getElementById('logList').innerHTML = '<div class="empty-state"><p>仅管理员可查看</p></div>'; return; }
+                allLogs = await res.json();
+                renderLogList();
+            } catch (err) { console.error('loadLogs', err); }
+        }
+        function renderLogList() {
+            const container = document.getElementById('logList');
+            if (!allLogs || allLogs.length === 0) {
+                container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg><p>暂无日志记录</p></div>';
+                return;
+            }
+            container.innerHTML = allLogs.map(l => `
+                <div class="log-item">
+                    <span class="log-time">${formatDateTime(l.created_at)}</span>
+                    <span class="log-user">${escapeHtml(l.username)}</span>
+                    <span class="log-action ${l.action}">${ACTION_LABELS[l.action] || l.action}</span>
+                    <span class="log-detail">${escapeHtml(l.detail || '')}</span>
+                </div>
+            `).join('');
+        }
+        function formatDateTime(s) {
+            if (!s) return '从未';
+            const d = new Date(s);
+            if (isNaN(d.getTime())) return s;
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        }
+        // 初始化
+        (function() {
             const userStr = localStorage.getItem('user');
             if (userStr) {
                 const user = JSON.parse(userStr);
@@ -689,6 +953,11 @@
                 renderArticleList();
                 renderCategoryList();
                 renderDiscussions();
+            });
+            loadUsers().then(() => renderUserList());
+            loadLogs();
+            document.getElementById('userModal').addEventListener('click', function(e) {
+                if (e.target === this) closeUserModal();
             });
         })();
     </script>
