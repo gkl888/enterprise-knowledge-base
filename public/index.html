@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <script src="./api-shim.js"></script>
+<script>const API_BASE = '';</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>企业知识库</title>
@@ -817,7 +818,7 @@
             btn.disabled = true;
             
             try {
-                const res = await fetch(`${API_BASE}/api/login`, {
+                const res = await fetch(`${API_BASE}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -875,8 +876,8 @@
         async function loadData() {
             try {
                 const [categoriesRes, articlesRes] = await Promise.all([
-                    fetch(`${API_BASE}/api/categories`),
-                    fetch(`${API_BASE}/api/articles`)
+                    fetch(`${API_BASE}/categories`),
+                    fetch(`${API_BASE}/articles`)
                 ]);
                 allCategories = await categoriesRes.json();
                 allArticles = await articlesRes.json();
