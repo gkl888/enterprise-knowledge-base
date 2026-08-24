@@ -478,7 +478,7 @@
 
         function openModal(isEdit = false) {
             document.getElementById('articleModal').classList.add('active');
-            document.getElementById('modalTitle').textContent = isEdit ? '编辑文章' : '新建文章文章';
+            document.getElementById('modalTitle').textContent = isEdit ? '编辑文章' : '新建文章';
             renderCategoryOptions();
             if (!isEdit) {
                 document.getElementById('articleId').value = '';
@@ -504,7 +504,7 @@
             if (!content) { alert('请输入文章内容'); return; }
 
             const data = { title, category, summary, content };
-            const method = id ? 'PUT' : 'POSTT';
+            const method = id ? 'PUT' : 'POST';
             const url = id ? `${API_BASE}/api/articles/${id}` : `${API_BASE}/api/articles`;
 
             try {
@@ -541,7 +541,7 @@
         }
 
         async function deleteArticle(id) {
-            if (!confirm('确定要删除这篇文章吗？此操作不可恢复 ?)) return;
+            if (!confirm('确定要删除这篇文章吗？此操作不可恢复')) return;
             try {
                 await fetch(`${API_BASE}/api/articles/${id}`, {
                     method: 'DELETE',
