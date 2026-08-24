@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <script src="./api-shim.js"></script>
@@ -170,13 +170,13 @@
             color: #666;
         }
 
-        /* ========== 主页面样 ?========== */
+        /* ========== 主页面样式========== */
         .main-page {
             display: none;
             min-height: 100vh;
         }
 
-        /* 顶部导航 ?*/
+        /* 顶部导航栏*/
         .navbar {
             background: #2c3e50;
             height: 56px;
@@ -283,7 +283,7 @@
             cursor: pointer;
         }
 
-        /* 面包 ?*/
+        /* 面包屑*/
         .breadcrumb {
             background: white;
             padding: 12px 24px;
@@ -604,7 +604,7 @@
             color: #999;
         }
 
-        /* 空状 ?*/
+        /* 空状态*/
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -687,9 +687,9 @@
         </div>
     </div>
 
-    <!-- 主页 ?-->
+    <!-- 主页样式-->
     <div class="main-page" id="mainPage">
-        <!-- 顶部导航 ?-->
+        <!-- 顶部导航栏-->
         <nav class="navbar">
             <div class="nav-left">
                 <a href="index.html" class="nav-brand">
@@ -711,13 +711,13 @@
             </div>
         </nav>
 
-        <!-- 面包 ?-->
+        <!-- 面包屑-->
         <div class="breadcrumb">
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             知识库 / 业务知识沉淀
         </div>
 
-        <!-- 主内 ?-->
+        <!-- 主内容区-->
         <div class="main-content">
             <!-- 欢迎卡片 -->
             <div class="welcome-card">
@@ -747,13 +747,13 @@
                 </div>
             </div>
 
-            <!-- 下方内容区：侧边 ?+ 文章列表 -->
+            <!-- 下方内容区：侧边栏 + 文章列表 -->
             <div class="content-bottom">
                 <!-- 左侧边栏 -->
                 <aside class="sidebar">
                     <div class="sidebar-header">文章分类</div>
                     <div class="category-list" id="categoryList">
-                        <!-- 分类列表将在这里动态加 ?-->
+                        <!-- 分类列表将在这里动态加载-->
                     </div>
                 </aside>
 
@@ -768,7 +768,7 @@
                             <div class="sort-option">按更新时间排序</div>
                         </div>
                         <div id="articleList">
-                            <!-- 文章列表将在这里动态加 ?-->
+                            <!-- 文章列表将在这里动态加载-->
                         </div>
                     </div>
                 </div>
@@ -813,7 +813,7 @@
             }
             
             const btn = document.querySelector('.login-btn');
-            btn.textContent = '登录 ?..';
+            btn.textContent = '登录中...';
             btn.disabled = true;
             
             try {
@@ -892,14 +892,14 @@
             
             // 全部文章
             let html = `
-                <div class="category-item ${currentCategory === 'all' ? 'active' : ''; ''}" onclick="selectCategory('all', '全部')">
+                <div class="category-item ${currentCategory === 'all' ? 'active' : ''}" onclick="selectCategory('all', '全部')">
                     <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
                     全部文章
                 </div>
             `;
             
             html += allCategories.map(cat => `
-                <div class="category-item ${currentCategory === cat.name ? 'active' : ''; ''}" onclick="selectCategory('${cat.name}', '${cat.name}')">
+                <div class="category-item ${currentCategory === cat.name ? 'active' : ''}" onclick="selectCategory('${cat.name}', '${cat.name}')">
                     <svg viewBox="0 0 24 24"><path d="${getCategoryIcon('list')}"/></svg>
                     ${cat.name}
                 </div>
@@ -935,7 +935,7 @@
                 '产品知识': 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z',
                 '业务流程': 'M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z',
                 '规章制度': 'M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z',
-                '技术支 ?: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'
+                '技术支持': 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'
             };
             return icons[name] || 'M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z';
         }
