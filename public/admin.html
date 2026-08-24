@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <script src="./api-shim.js"></script>
+<script>const API_BASE = ";</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理后台 - 企业知识库</title>
@@ -409,9 +410,9 @@
         async function loadData() {
             try {
                 const [articlesRes, categoriesRes, discussionsRes] = await Promise.all([
-                    fetch(`${API_BASE}/api/articles`),
-                    fetch(`${API_BASE}/api/categories`),
-                    fetch(`${API_BASE}/api/discussions`)
+                    fetch(`${API_BASE}/articles`),
+                    fetch(`${API_BASE}/categories`),
+                    fetch(`${API_BASE}/discussions`)
                 ]);
                 allArticles = await articlesRes.json();
                 allCategories = await categoriesRes.json();
@@ -505,7 +506,7 @@
 
             const data = { title, category, summary, content };
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `${API_BASE}/api/articles/${id}` : `${API_BASE}/api/articles`;
+            const url = id ? `${API_BASE}/articles/${id}` : `${API_BASE}/articles`;
 
             try {
                 await fetch(url, {
@@ -543,7 +544,7 @@
         async function deleteArticle(id) {
             if (!confirm('确定要删除这篇文章吗？此操作不可恢复')) return;
             try {
-                await fetch(`${API_BASE}/api/articles/${id}`, {
+                await fetch(`${API_BASE}/articles/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
@@ -629,7 +630,7 @@
             if (!reply) { alert('请输入回复内容'); return; }
 
             try {
-                await fetch(`${API_BASE}/api/discussions/${postId}/reply`, {
+                await fetch(`${API_BASE}/discussions/${postId}/reply`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -649,7 +650,7 @@
         async function deleteDiscussion(id) {
             if (!confirm('确定要删除这条留言吗？')) return;
             try {
-                await fetch(`${API_BASE}/api/discussions/${id}`, {
+                await fetch(`${API_BASE}/discussions/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
