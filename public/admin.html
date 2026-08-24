@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <script src="./api-shim.js"></script>
@@ -348,7 +348,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">回复内容</label>
-                    <textarea class="form-textarea" id="replyContent" placeholder="请输入回复内 ?.." style="min-height: 120px;"></textarea>
+                    <textarea class="form-textarea" id="replyContent" placeholder="请输入回复内容..." style="min-height: 120px;"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -371,7 +371,7 @@
                 <input type="hidden" id="articleId">
                 <div class="form-group">
                     <label class="form-label">文章标题</label>
-                    <input type="text" class="form-input" id="articleTitle" placeholder="请输入文章标 ?>
+                    <input type="text" class="form-input" id="articleTitle" placeholder="请输入文章标题>
                 </div>
                 <div class="form-group">
                     <label class="form-label">文章分类</label>
@@ -379,7 +379,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">文章摘要</label>
-                    <input type="text" class="form-input" id="articleSummary" placeholder="请输入文章摘 ?>
+                    <input type="text" class="form-input" id="articleSummary" placeholder="请输入文章摘要>
                 </div>
                 <div class="form-group">
                     <label class="form-label">文章内容</label>
@@ -434,7 +434,7 @@
                 container.innerHTML = `
                     <div class="empty-state">
                         <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                        <p>暂无文章，点 ?新建文章"按钮添加</p>
+                        <p>暂无文章，点"新建文章""按钮添加</p>
                     </div>
                 `;
                 return;
@@ -575,7 +575,7 @@
                             <div class="discussion-author">${d.username || '用户'}</div>
                             <div class="discussion-time">${formatDate(d.created_at)}</div>
                         </div>
-                        <span class="discussion-type ${d.status === 'replied' ? 'type-shared' : 'type-pending' : 'type-request'}">${d.status === 'replied' ? ' ?已回 ? : '📚 待回 ?}</span>
+                        <span class="discussion-type ${d.status === 'replied' ? 'type-shared' : 'type-pending' : 'type-request'}">${d.status === 'replied' ? '✅已回复 : '📚 待回 ?}</span>
                     </div>
                     <div class="discussion-content">${escapeHtml(d.content)}</div>
                     ${renderAdminReplies(d)}
@@ -595,7 +595,7 @@
             return `
                 <div class="discussion-replies">
                     <div class="discussion-reply">
-                        <span class="reply-author">${discussion.replied_by || '管理 ?}</span>
+                        <span class="reply-author">${discussion.replied_by || '管理员}</span>
                         <span class="reply-time">${formatDate(discussion.replied_at)}</span>
                         <div style="margin-top: 4px;">${escapeHtml(discussion.reply)}</div>
                     </div>
