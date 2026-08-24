@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <script src="./api-shim.js"></script>
@@ -168,7 +168,7 @@
             </div>
             <div class="post-tags">
                 <div class="post-tag active">📚 知识索求</div>
-                <div class="post-tag"> ?问题求助</div>
+                <div class="post-tag"> 📌问题求助</div>
                 <div class="post-tag">💡 经验分享</div>
             </div>
             <textarea class="post-textarea" id="messageContent" placeholder="请描述你需要学习的知识内容，或详细说明你遇到的问题..."></textarea>
@@ -206,7 +206,7 @@
             
             const btn = document.querySelector('.submit-btn');
             btn.disabled = true;
-            btn.textContent = '发布 ?..';
+            btn.textContent = '发布中...';
             
             try {
                 const res = await fetch(`${API_BASE}/api/discussions`, {
