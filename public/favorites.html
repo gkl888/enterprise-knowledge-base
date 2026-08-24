@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <script src="./api-shim.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的收藏 - 企业知识�?/title>
+    <title>我的收藏 - 企业知识库</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -122,25 +122,25 @@
         <div class="nav-left">
             <a href="index.html" class="nav-brand">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                企业知识�?            </a>
+                企业知识 ?            </a>
             <div class="nav-menu">
                 <a href="index.html" class="nav-item">首页</a>
                 <a href="favorites.html" class="nav-item active">我的收藏</a>
-                <a href="discussion.html" class="nav-item">知识交流�?/a>
+                <a href="discussion.html" class="nav-item">知识交流 ?/a>
                 <a href="admin.html" class="nav-item">管理后台</a>
             </div>
         </div>
         <div class="nav-right">
             <div class="search-box">
                 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" placeholder="快速搜索知�? id="navSearch">
+                <input type="text" placeholder="快速搜索知 ? id="navSearch">
             </div>
-            <div class="user-avatar" id="userAvatar">�?/div>
+            <div class="user-avatar" id="userAvatar"> ?/div>
         </div>
     </nav>
 
     <div class="breadcrumb">
-        <a href="index.html">知识�?/a> / 我的收藏
+        <a href="index.html">知识 ?/a> / 我的收藏
     </div>
 
     <div class="main-content">
@@ -149,7 +149,7 @@
                 <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 我的收藏
             </div>
-            <div class="welcome-desc">您收藏的文章将在这里显示，方便快速查�?/div>
+            <div class="welcome-desc">您收藏的文章将在这里显示，方便快速查 ?/div>
         </div>
         <div class="article-list-card" id="favoritesList"></div>
     </div>
@@ -173,8 +173,8 @@
                     <div class="empty-state">
                         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                         <h3>暂无收藏</h3>
-                        <p>请先登录后查看收�?/p>
-                        <a href="index.html" class="browse-btn">去浏览文�?/a>
+                        <p>请先登录后查看收 ?/p>
+                        <a href="index.html" class="browse-btn">去浏览文 ?/a>
                     </div>
                 `;
                 return;
@@ -191,8 +191,8 @@
                         <div class="empty-state">
                             <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                             <h3>暂无收藏</h3>
-                            <p>在文章详情页点击"收藏"按钮，即可将文章添加到此�?/p>
-                            <a href="index.html" class="browse-btn">去浏览文�?/a>
+                            <p>在文章详情页点击"收藏"按钮，即可将文章添加到此 ?/p>
+                            <a href="index.html" class="browse-btn">去浏览文 ?/a>
                         </div>
                     `;
                     return;
@@ -214,7 +214,7 @@
                                 <div class="author-avatar"></div>
                                 <span>作者：${a.author}</span>
                             </div>
-                            <span class="article-date">收藏�?${formatDate(a.favorite_at || a.created_at)}</span>
+                            <span class="article-date">收藏 ?${formatDate(a.favorite_at || a.created_at)}</span>
                         </div>
                     </div>
                 `).join('');
@@ -228,7 +228,7 @@
             }
         }
 
-        // 初始�?        (function() {
+        // 初始 ?        (function() {
             if (currentUser) {
                 const avatar = document.getElementById('userAvatar');
                 if (avatar) {
