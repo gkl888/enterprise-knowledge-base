@@ -846,7 +846,8 @@
             }
         });
 
-        // 初始化页面        async function initPage() {
+        // 初始化页面
+        async function initPage() {
             // 检查URL参数
             const urlParams = new URLSearchParams(window.location.search);
             searchKeyword = urlParams.get('search') || '';
@@ -870,7 +871,8 @@
             }
         }
 
-        // 加载所有数据        async function loadData() {
+        // 加载所有数据
+        async function loadData() {
             try {
                 const [categoriesRes, articlesRes] = await Promise.all([
                     fetch(`${API_BASE}/api/categories`),
@@ -989,7 +991,8 @@
             `).join('');
         }
 
-        // 格式化日期        function formatDate(dateStr) {
+        // 格式化日期
+        function formatDate(dateStr) {
             if (!dateStr) return '';
             const date = new Date(dateStr);
             return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
