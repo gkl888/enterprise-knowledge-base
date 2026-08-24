@@ -1,220 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<script>// API Shim - 重写 fetch �?/api/* 请求直连 Supabase
-(function() {
-  const SUPABASE_URL = 'https://esfuzcizqjamcegmddok.supabase.co'
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZnV6Y2l6cWphbWNlZ21kZG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyOTU1NzQsImV4cCI6MjEwMjg3MTU3NH0.ccCTSySdvcBM6KTR1xo7GB8l4DgJFzGlJNVCp0xTf9Y'
-
-  function getAuth() {
-    const token = localStorage.getItem('token')
-    if (!token) return null
-    try { return JSON.parse(atob(token)) } catch { return null }
-  }
-
-  async function supa(path, options = {}) {
-    const url = SUPABASE_URL + '/rest/v1' + path
-    const headers = {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json'
-    }
-    if (options.prefer) headers['Prefer'] = options.prefer
-    return fetch(url, {
-      method: options.method || 'GET',
-      headers,
-      body: options.body ? JSON.stringify(options.body) : undefined
-    })
-  }
-
-  function jsonResponse(data, status) {
-    return new Response(JSON.stringify(data), {
-      status: status || 200,
-      headers: { 'Content-Type': 'application/json' }
-    })
-  }
-
-  function notFound() { return jsonResponse({ error: 'Not Found' }, 404) }
-  function unauthorized(msg) { return jsonResponse({ error: msg || '未登�? }, 401) }
-  function forbidden() { return jsonResponse({ error: '无权�? }, 403) }
-
-  const originalFetch = window.fetch.bind(window)
-
-  window.fetch = async function(input, init) {
-    let url, request
-    if (typeof input === 'string') {
-      url = new URL(input, location.origin)
-    } else if (input instanceof Request) {
-      url = new URL(input.url, location.origin)
-    } else if (input instanceof URL) {
-      url = input
-    } else {
-      return originalFetch(input, init)
-    }
-
-    // 只处理同�?/api/* 请求
-    if (url.origin !== location.origin || !url.pathname.startsWith('/api/')) {
-      return originalFetch(input, init)
-    }
-
-    const path = url.pathname.replace('/api', '')
-    const method = (init && init.method) || (input.method) || 'GET'
-    let body
-    if (init && init.body) {
-      try { body = JSON.parse(init.body) } catch { body = init.body }
-    } else if (input instanceof Request && input.body) {
-      try { body = await input.clone().json() } catch {}
-    }
-
-    const user = getAuth()
-
-    try {
-      // 登录
-      if (path === '/login' && method === 'POST') {
-        const r = await supa('/users?username=eq.' + encodeURIComponent(body.username) + '&password=eq.' + encodeURIComponent(body.password) + '&select=id,username,role,password')
-        const users = await r.json()
-        if (!users || users.length === 0) return jsonResponse({ error: '用户名或密码错误' }, 401)
-        const u = users[0]
-        const token = btoa(JSON.stringify({ userId: u.id, username: u.username, role: u.role }))
-        return jsonResponse({ token, user: { id: u.id, username: u.username, role: u.role } })
-      }
-
-      // 文章列表
-      if (path === '/articles' && method === 'GET') {
-        let q = '/articles?order=created_at.desc'
-        if (url.searchParams.get('category')) q += '&category=eq.' + encodeURIComponent(url.searchParams.get('category'))
-        const r = await supa(q)
-        let data = await r.json()
-        const search = url.searchParams.get('search')
-        if (search) {
-          const s = search.toLowerCase()
-          data = data.filter(function(a) { return (a.title || '').toLowerCase().includes(s) || (a.content || '').toLowerCase().includes(s) })
-        }
-        return jsonResponse(data)
-      }
-
-      // 单文�?      var m
-      if ((m = path.match(/^\/articles\/(\d+)$/)) && method === 'GET') {
-        const r = await supa('/articles?id=eq.' + m[1] + '&select=*')
-        const arr = await r.json()
-        if (!arr || arr.length === 0) return jsonResponse({ error: '文章不存�? }, 404)
-        const a = arr[0]
-        supa('/articles?id=eq.' + m[1], { method: 'PATCH', body: { views: (a.views || 0) + 1 } })
-        return jsonResponse(Object.assign({}, a, { views: (a.views || 0) + 1 }))
-      }
-
-      // 创建文章
-      if (path === '/articles' && method === 'POST') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        const r = await supa('/articles', {
-          method: 'POST',
-          body: { title: body.title, content: body.content, summary: body.summary || '', category: body.category, author: user.username, views: 0, created_at: new Date().toISOString().split('T')[0] },
-          prefer: 'return=representation'
-        })
-        const arr = await r.json()
-        return jsonResponse({ id: arr[0].id, message: '创建成功' }, 201)
-      }
-
-      // 更新文章
-      if ((m = path.match(/^\/articles\/(\d+)$/)) && method === 'PUT') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        await supa('/articles?id=eq.' + m[1], { method: 'PATCH', body: { title: body.title, content: body.content, summary: body.summary, category: body.category } })
-        return jsonResponse({ message: '更新成功' })
-      }
-
-      // 删除文章
-      if ((m = path.match(/^\/articles\/(\d+)$/)) && method === 'DELETE') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        await supa('/articles?id=eq.' + m[1], { method: 'DELETE' })
-        await supa('/favorites?article_id=eq.' + m[1], { method: 'DELETE' })
-        return jsonResponse({ message: '删除成功' })
-      }
-
-      // 分类
-      if (path === '/categories' && method === 'GET') {
-        const r = await supa('/categories?order=sort_order.asc')
-        return jsonResponse(await r.json())
-      }
-
-      // 收藏列表
-      if (path === '/favorites' && method === 'GET') {
-        if (!user) return unauthorized()
-        const r1 = await supa('/favorites?user_id=eq.' + user.userId + '&select=article_id,created_at')
-        const favs = await r1.json()
-        if (!favs || favs.length === 0) return jsonResponse([])
-        const ids = favs.map(function(f) { return f.article_id }).join(',')
-        const r2 = await supa('/articles?id=in.(' + ids + ')')
-        const articles = await r2.json()
-        const result = articles.map(function(a) {
-          const fav = favs.find(function(f) { return f.article_id === a.id })
-          return Object.assign({}, a, { favorite_at: fav && fav.created_at })
-        })
-        return jsonResponse(result)
-      }
-
-      // 添加收藏
-      if ((m = path.match(/^\/favorites\/(\d+)$/)) && method === 'POST') {
-        if (!user) return unauthorized()
-        const r1 = await supa('/favorites?user_id=eq.' + user.userId + '&article_id=eq.' + m[1] + '&select=id')
-        const exist = await r1.json()
-        if (exist && exist.length > 0) return jsonResponse({ error: '已收�? }, 400)
-        await supa('/favorites', { method: 'POST', body: { user_id: user.userId, article_id: parseInt(m[1]) } })
-        return jsonResponse({ message: '收藏成功' })
-      }
-
-      // 取消收藏
-      if ((m = path.match(/^\/favorites\/(\d+)$/)) && method === 'DELETE') {
-        if (!user) return unauthorized()
-        await supa('/favorites?user_id=eq.' + user.userId + '&article_id=eq.' + m[1], { method: 'DELETE' })
-        return jsonResponse({ message: '取消收藏' })
-      }
-
-      // 留言提交
-      if (path === '/discussions' && method === 'POST') {
-        if (!user) return unauthorized()
-        await supa('/discussions', {
-          method: 'POST',
-          body: { user_id: user.userId, username: user.username, content: body.content, reply: null, replied_by: null, replied_at: null, status: 'pending' }
-        })
-        return jsonResponse({ message: '提交成功' })
-      }
-
-      // 留言列表
-      if (path === '/discussions' && method === 'GET') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        const r = await supa('/discussions?order=id.desc')
-        return jsonResponse(await r.json())
-      }
-
-      // 回复留言
-      if ((m = path.match(/^\/discussions\/(\d+)\/reply$/)) && method === 'PUT') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        await supa('/discussions?id=eq.' + m[1], { method: 'PATCH', body: { reply: body.reply, replied_by: user.username, replied_at: new Date().toISOString(), status: 'replied' } })
-        return jsonResponse({ message: '回复成功' })
-      }
-
-      // 删除留言
-      if ((m = path.match(/^\/discussions\/(\d+)$/)) && method === 'DELETE') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        await supa('/discussions?id=eq.' + m[1], { method: 'DELETE' })
-        return jsonResponse({ message: '删除成功' })
-      }
-
-      return notFound()
-    } catch (err) {
-      return jsonResponse({ error: err.message || String(err) }, 500)
-    }
-  }
-})()</script>
+<script src="./api-shim.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的收藏 - 企业知识�?/title>
+    <title>我的收藏 - 企业知识�?/title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -332,25 +122,25 @@
         <div class="nav-left">
             <a href="index.html" class="nav-brand">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                企业知识�?            </a>
+                企业知识�?            </a>
             <div class="nav-menu">
                 <a href="index.html" class="nav-item">首页</a>
                 <a href="favorites.html" class="nav-item active">我的收藏</a>
-                <a href="discussion.html" class="nav-item">知识交流�?/a>
+                <a href="discussion.html" class="nav-item">知识交流�?/a>
                 <a href="admin.html" class="nav-item">管理后台</a>
             </div>
         </div>
         <div class="nav-right">
             <div class="search-box">
                 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" placeholder="快速搜索知�? id="navSearch">
+                <input type="text" placeholder="快速搜索知�? id="navSearch">
             </div>
-            <div class="user-avatar" id="userAvatar">�?/div>
+            <div class="user-avatar" id="userAvatar">�?/div>
         </div>
     </nav>
 
     <div class="breadcrumb">
-        <a href="index.html">知识�?/a> / 我的收藏
+        <a href="index.html">知识�?/a> / 我的收藏
     </div>
 
     <div class="main-content">
@@ -359,223 +149,12 @@
                 <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 我的收藏
             </div>
-            <div class="welcome-desc">您收藏的文章将在这里显示，方便快速查�?/div>
+            <div class="welcome-desc">您收藏的文章将在这里显示，方便快速查�?/div>
         </div>
         <div class="article-list-card" id="favoritesList"></div>
     </div>
 
     <script>
-        <script>// API Shim - 重写 fetch �?/api/* 请求直连 Supabase
-(function() {
-  const SUPABASE_URL = 'https://esfuzcizqjamcegmddok.supabase.co'
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZnV6Y2l6cWphbWNlZ21kZG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyOTU1NzQsImV4cCI6MjEwMjg3MTU3NH0.ccCTSySdvcBM6KTR1xo7GB8l4DgJFzGlJNVCp0xTf9Y'
-
-  function getAuth() {
-    const token = localStorage.getItem('token')
-    if (!token) return null
-    try { return JSON.parse(atob(token)) } catch { return null }
-  }
-
-  async function supa(path, options = {}) {
-    const url = SUPABASE_URL + '/rest/v1' + path
-    const headers = {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json'
-    }
-    if (options.prefer) headers['Prefer'] = options.prefer
-    return fetch(url, {
-      method: options.method || 'GET',
-      headers,
-      body: options.body ? JSON.stringify(options.body) : undefined
-    })
-  }
-
-  function jsonResponse(data, status) {
-    return new Response(JSON.stringify(data), {
-      status: status || 200,
-      headers: { 'Content-Type': 'application/json' }
-    })
-  }
-
-  function notFound() { return jsonResponse({ error: 'Not Found' }, 404) }
-  function unauthorized(msg) { return jsonResponse({ error: msg || '未登�? }, 401) }
-  function forbidden() { return jsonResponse({ error: '无权�? }, 403) }
-
-  const originalFetch = window.fetch.bind(window)
-
-  window.fetch = async function(input, init) {
-    let url, request
-    if (typeof input === 'string') {
-      url = new URL(input, location.origin)
-    } else if (input instanceof Request) {
-      url = new URL(input.url, location.origin)
-    } else if (input instanceof URL) {
-      url = input
-    } else {
-      return originalFetch(input, init)
-    }
-
-    // 只处理同�?/api/* 请求
-    if (url.origin !== location.origin || !url.pathname.startsWith('/api/')) {
-      return originalFetch(input, init)
-    }
-
-    const path = url.pathname.replace('/api', '')
-    const method = (init && init.method) || (input.method) || 'GET'
-    let body
-    if (init && init.body) {
-      try { body = JSON.parse(init.body) } catch { body = init.body }
-    } else if (input instanceof Request && input.body) {
-      try { body = await input.clone().json() } catch {}
-    }
-
-    const user = getAuth()
-
-    try {
-      // 登录
-      if (path === '/login' && method === 'POST') {
-        const r = await supa('/users?username=eq.' + encodeURIComponent(body.username) + '&password=eq.' + encodeURIComponent(body.password) + '&select=id,username,role,password')
-        const users = await r.json()
-        if (!users || users.length === 0) return jsonResponse({ error: '用户名或密码错误' }, 401)
-        const u = users[0]
-        const token = btoa(JSON.stringify({ userId: u.id, username: u.username, role: u.role }))
-        return jsonResponse({ token, user: { id: u.id, username: u.username, role: u.role } })
-      }
-
-      // 文章列表
-      if (path === '/articles' && method === 'GET') {
-        let q = '/articles?order=created_at.desc'
-        if (url.searchParams.get('category')) q += '&category=eq.' + encodeURIComponent(url.searchParams.get('category'))
-        const r = await supa(q)
-        let data = await r.json()
-        const search = url.searchParams.get('search')
-        if (search) {
-          const s = search.toLowerCase()
-          data = data.filter(function(a) { return (a.title || '').toLowerCase().includes(s) || (a.content || '').toLowerCase().includes(s) })
-        }
-        return jsonResponse(data)
-      }
-
-      // 单文�?      var m
-      if ((m = path.match(/^\/articles\/(\d+)$/)) && method === 'GET') {
-        const r = await supa('/articles?id=eq.' + m[1] + '&select=*')
-        const arr = await r.json()
-        if (!arr || arr.length === 0) return jsonResponse({ error: '文章不存�? }, 404)
-        const a = arr[0]
-        supa('/articles?id=eq.' + m[1], { method: 'PATCH', body: { views: (a.views || 0) + 1 } })
-        return jsonResponse(Object.assign({}, a, { views: (a.views || 0) + 1 }))
-      }
-
-      // 创建文章
-      if (path === '/articles' && method === 'POST') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        const r = await supa('/articles', {
-          method: 'POST',
-          body: { title: body.title, content: body.content, summary: body.summary || '', category: body.category, author: user.username, views: 0, created_at: new Date().toISOString().split('T')[0] },
-          prefer: 'return=representation'
-        })
-        const arr = await r.json()
-        return jsonResponse({ id: arr[0].id, message: '创建成功' }, 201)
-      }
-
-      // 更新文章
-      if ((m = path.match(/^\/articles\/(\d+)$/)) && method === 'PUT') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        await supa('/articles?id=eq.' + m[1], { method: 'PATCH', body: { title: body.title, content: body.content, summary: body.summary, category: body.category } })
-        return jsonResponse({ message: '更新成功' })
-      }
-
-      // 删除文章
-      if ((m = path.match(/^\/articles\/(\d+)$/)) && method === 'DELETE') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        await supa('/articles?id=eq.' + m[1], { method: 'DELETE' })
-        await supa('/favorites?article_id=eq.' + m[1], { method: 'DELETE' })
-        return jsonResponse({ message: '删除成功' })
-      }
-
-      // 分类
-      if (path === '/categories' && method === 'GET') {
-        const r = await supa('/categories?order=sort_order.asc')
-        return jsonResponse(await r.json())
-      }
-
-      // 收藏列表
-      if (path === '/favorites' && method === 'GET') {
-        if (!user) return unauthorized()
-        const r1 = await supa('/favorites?user_id=eq.' + user.userId + '&select=article_id,created_at')
-        const favs = await r1.json()
-        if (!favs || favs.length === 0) return jsonResponse([])
-        const ids = favs.map(function(f) { return f.article_id }).join(',')
-        const r2 = await supa('/articles?id=in.(' + ids + ')')
-        const articles = await r2.json()
-        const result = articles.map(function(a) {
-          const fav = favs.find(function(f) { return f.article_id === a.id })
-          return Object.assign({}, a, { favorite_at: fav && fav.created_at })
-        })
-        return jsonResponse(result)
-      }
-
-      // 添加收藏
-      if ((m = path.match(/^\/favorites\/(\d+)$/)) && method === 'POST') {
-        if (!user) return unauthorized()
-        const r1 = await supa('/favorites?user_id=eq.' + user.userId + '&article_id=eq.' + m[1] + '&select=id')
-        const exist = await r1.json()
-        if (exist && exist.length > 0) return jsonResponse({ error: '已收�? }, 400)
-        await supa('/favorites', { method: 'POST', body: { user_id: user.userId, article_id: parseInt(m[1]) } })
-        return jsonResponse({ message: '收藏成功' })
-      }
-
-      // 取消收藏
-      if ((m = path.match(/^\/favorites\/(\d+)$/)) && method === 'DELETE') {
-        if (!user) return unauthorized()
-        await supa('/favorites?user_id=eq.' + user.userId + '&article_id=eq.' + m[1], { method: 'DELETE' })
-        return jsonResponse({ message: '取消收藏' })
-      }
-
-      // 留言提交
-      if (path === '/discussions' && method === 'POST') {
-        if (!user) return unauthorized()
-        await supa('/discussions', {
-          method: 'POST',
-          body: { user_id: user.userId, username: user.username, content: body.content, reply: null, replied_by: null, replied_at: null, status: 'pending' }
-        })
-        return jsonResponse({ message: '提交成功' })
-      }
-
-      // 留言列表
-      if (path === '/discussions' && method === 'GET') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        const r = await supa('/discussions?order=id.desc')
-        return jsonResponse(await r.json())
-      }
-
-      // 回复留言
-      if ((m = path.match(/^\/discussions\/(\d+)\/reply$/)) && method === 'PUT') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        await supa('/discussions?id=eq.' + m[1], { method: 'PATCH', body: { reply: body.reply, replied_by: user.username, replied_at: new Date().toISOString(), status: 'replied' } })
-        return jsonResponse({ message: '回复成功' })
-      }
-
-      // 删除留言
-      if ((m = path.match(/^\/discussions\/(\d+)$/)) && method === 'DELETE') {
-        if (!user) return unauthorized()
-        if (user.role !== 'admin') return forbidden()
-        await supa('/discussions?id=eq.' + m[1], { method: 'DELETE' })
-        return jsonResponse({ message: '删除成功' })
-      }
-
-      return notFound()
-    } catch (err) {
-      return jsonResponse({ error: err.message || String(err) }, 500)
-    }
-  }
-})()</script>
         
         const authToken = localStorage.getItem('token');
         const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
@@ -594,8 +173,8 @@
                     <div class="empty-state">
                         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                         <h3>暂无收藏</h3>
-                        <p>请先登录后查看收�?/p>
-                        <a href="index.html" class="browse-btn">去浏览文�?/a>
+                        <p>请先登录后查看收�?/p>
+                        <a href="index.html" class="browse-btn">去浏览文�?/a>
                     </div>
                 `;
                 return;
@@ -612,8 +191,8 @@
                         <div class="empty-state">
                             <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                             <h3>暂无收藏</h3>
-                            <p>在文章详情页点击"收藏"按钮，即可将文章添加到此�?/p>
-                            <a href="index.html" class="browse-btn">去浏览文�?/a>
+                            <p>在文章详情页点击"收藏"按钮，即可将文章添加到此�?/p>
+                            <a href="index.html" class="browse-btn">去浏览文�?/a>
                         </div>
                     `;
                     return;
@@ -635,7 +214,7 @@
                                 <div class="author-avatar"></div>
                                 <span>作者：${a.author}</span>
                             </div>
-                            <span class="article-date">收藏�?${formatDate(a.favorite_at || a.created_at)}</span>
+                            <span class="article-date">收藏�?${formatDate(a.favorite_at || a.created_at)}</span>
                         </div>
                     </div>
                 `).join('');
@@ -649,7 +228,7 @@
             }
         }
 
-        // 初始�?        (function() {
+        // 初始�?        (function() {
             if (currentUser) {
                 const avatar = document.getElementById('userAvatar');
                 if (avatar) {
