@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <script src="./api-shim.js"></script>
+<script>const API_BASE = ";</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文章详情 - 企业知识库</title>
@@ -192,7 +193,7 @@
             currentArticleId = articleId;
 
             try {
-                const res = await fetch(`${API_BASE}/api/articles/${articleId}`);
+                const res = await fetch(`${API_BASE}/articles/${articleId}`);
                 if (!res.ok) {
                     showNotFound(container, '该文章可能已被删除');
                     return;
@@ -205,7 +206,7 @@
                 isFavorite = false;
                 if (authToken) {
                     try {
-                        const favRes = await fetch(`${API_BASE}/api/favorites`, {
+                        const favRes = await fetch(`${API_BASE}/favorites`, {
                             headers: { 'Authorization': `Bearer ${authToken}` }
                         });
                         const favorites = await favRes.json();
@@ -262,7 +263,7 @@
             }
             try {
                 const method = isFavorite ? 'DELETE' : 'POST';
-                await fetch(`${API_BASE}/api/favorites/${currentArticleId}`, {
+                await fetch(`${API_BASE}/favorites/${currentArticleId}`, {
                     method,
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
