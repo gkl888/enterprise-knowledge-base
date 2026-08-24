@@ -120,25 +120,25 @@
         <div class="nav-left">
             <a href="index.html" class="nav-brand">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                企业知识 ?            </a>
+                企业知识库            </a>
             <div class="nav-menu">
                 <a href="index.html" class="nav-item">首页</a>
                 <a href="favorites.html" class="nav-item">我的收藏</a>
-                <a href="discussion.html" class="nav-item">知识交流 ?/a>
+                <a href="discussion.html" class="nav-item">知识交流池</a>
                 <a href="admin.html" class="nav-item">管理后台</a>
             </div>
         </div>
         <div class="nav-right">
             <div class="search-box">
                 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" placeholder="快速搜索知 ? id="navSearch">
+                <input type="text" placeholder="快速搜索知识" id="navSearch">
             </div>
-            <div class="user-avatar" id="userAvatar"> ?/div>
+            <div class="user-avatar" id="userAvatar"></div>
         </div>
     </nav>
 
     <div class="breadcrumb">
-        <a href="index.html">知识 ?/a> / <a href="index.html">业务知识沉淀</a> / <span id="breadcrumbTitle">文章详情</span>
+        <a href="index.html">知识库</a> / <a href="index.html">业务知识沉淀</a> / <span id="breadcrumbTitle">文章详情</span>
     </div>
 
     <div class="main-content">
@@ -185,7 +185,7 @@
             const container = document.getElementById('articleContainer');
 
             if (!articleId) {
-                showNotFound(container, '请检查链接是否正 ?);
+                showNotFound(container, '请检查链接是否正确');
                 return;
             }
 
@@ -194,7 +194,7 @@
             try {
                 const res = await fetch(`${API_BASE}/api/articles/${articleId}`);
                 if (!res.ok) {
-                    showNotFound(container, '该文章可能已被删 ?);
+                    showNotFound(container, '该文章可能已被删除');
                     return;
                 }
                 const article = await res.json();
@@ -229,7 +229,7 @@
                             <div class="article-actions">
                                 <button class="action-btn ${isFavorite ? 'favorite' : ''}" onclick="toggleFavorite()">
                                     <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                                    ${isFavorite ? '已收 ? : '收藏'}
+                                    ${isFavorite ? '已收藏' : '收藏'}
                                 </button>
                                 <button class="action-btn" onclick="shareArticle()">
                                     <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
@@ -249,7 +249,7 @@
             container.innerHTML = `
                 <div class="not-found">
                     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                    <h2>文章不存 ?/h2>
+                    <h2>文章不存在</h2>
                     <p>${msg}</p>
                 </div>
             `;
@@ -278,11 +278,11 @@
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(url).then(() => alert('链接已复 ?));
             } else {
-                alert('链接 ? + url);
+                alert('链接无效' + url);
             }
         }
 
-        // 初始 ?        (function() {
+        // 初始化        (function() {
             authToken = localStorage.getItem('token');
             const userStr = localStorage.getItem('user');
             if (userStr) {

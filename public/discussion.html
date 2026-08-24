@@ -128,25 +128,25 @@
         <div class="nav-left">
             <a href="index.html" class="nav-brand">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                企业知识 ?            </a>
+                企业知识库            </a>
             <div class="nav-menu">
                 <a href="index.html" class="nav-item">首页</a>
                 <a href="favorites.html" class="nav-item">我的收藏</a>
-                <a href="discussion.html" class="nav-item active">知识交流 ?/a>
+                <a href="discussion.html" class="nav-item active">知识交流池</a>
                 <a href="admin.html" class="nav-item">管理后台</a>
             </div>
         </div>
         <div class="nav-right">
             <div class="search-box">
                 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" placeholder="快速搜索知 ? id="navSearch">
+                <input type="text" placeholder="快速搜索知识" id="navSearch">
             </div>
-            <div class="user-avatar" id="userAvatar"> ?/div>
+            <div class="user-avatar" id="userAvatar"></div>
         </div>
     </nav>
 
     <div class="breadcrumb">
-        <a href="index.html">知识 ?/a> / 留言反馈
+        <a href="index.html">知识库</a> / 留言反馈
     </div>
 
     <div class="main-content">
@@ -155,14 +155,14 @@
                 <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
                 留言反馈
             </div>
-            <div class="welcome-desc">请描述你需要学习的知识内容，或详细说明你遇到的问题，管理员将在后台查看并回 ?/div>
+            <div class="welcome-desc">请描述你需要学习的知识内容，或详细说明你遇到的问题，管理员将在后台查看并回复</div>
         </div>
 
         <div class="post-card">
             <div class="post-header">
-                <div class="user-avatar-large" id="postAvatar"> ?/div>
+                <div class="user-avatar-large" id="postAvatar"></div>
                 <div class="user-info-line">
-                    <div class="user-name" id="postUsername">系统管理 ?/div>
+                    <div class="user-name" id="postUsername">系统管理员</div>
                     <div class="user-desc">分享你的学习需求或提出问题</div>
                 </div>
             </div>
@@ -246,7 +246,7 @@
             });
         });
 
-        // 初始 ?        (function() {
+        // 初始化        (function() {
             if (currentUser) {
                 const avatar = document.getElementById('userAvatar');
                 if (avatar) avatar.textContent = currentUser.username.charAt(0).toUpperCase();
