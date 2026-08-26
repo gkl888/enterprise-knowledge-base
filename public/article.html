@@ -146,6 +146,52 @@
             font-size: 12px; color: #1677ff; margin-left: 8px;
         }
         .article-card-attach svg { width: 14px; height: 14px; fill: currentColor; }
+        /* 预览层（Lightbox） */
+        .preview-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 2000;
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+        .preview-overlay.open { display: flex; }
+        .preview-header {
+            width: 100%; padding: 16px 24px; color: white;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.5);
+            font-size: 15px;
+        }
+        .preview-header .preview-title { font-weight: 500; }
+        .preview-close {
+            width: 36px; height: 36px; border: none; background: transparent;
+            color: white; font-size: 28px; cursor: pointer; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .preview-close:hover { background: rgba(255,255,255,0.15); }
+        .preview-body {
+            flex: 1; width: 100%; display: flex;
+            align-items: center; justify-content: center;
+            overflow: hidden; padding: 20px;
+        }
+        .preview-body img { max-width: 95%; max-height: 95%; object-fit: contain; }
+        .preview-body iframe {
+            width: 95%; height: 95%; background: white;
+            border: none; border-radius: 8px;
+        }
+        .preview-error {
+            color: rgba(255,255,255,0.7); font-size: 15px;
+            text-align: center; max-width: 400px;
+        }
+        .preview-error svg { width: 48px; height: 48px; fill: rgba(255,255,255,0.4); margin-bottom: 12px; }
+        /* 附件卡片可点击 */
+        .attachment-display-item { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+        .attachment-display-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #0d7a3d; }
+        .attachment-display-item.no-preview { cursor: default; }
+        .attachment-display-item.no-preview:hover { transform: none; box-shadow: none; }
+        .attachment-display-image { cursor: pointer; }
+        .preview-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            font-size: 11px; background: #e6f7ff; color: #1677ff; margin-left: 8px;
+        }
         .not-found { text-align: center; padding: 60px 20px; }
         .not-found svg { width: 64px; height: 64px; fill: #d9d9d9; margin-bottom: 16px; }
         .not-found h2 { font-size: 18px; color: #666; margin-bottom: 8px; }
@@ -275,7 +321,7 @@
                             </div>
                         </div>
                         <div class="article-content">${formatContent(article.content)}</div>
-                    ${renderAttachments(article.attachments)}
+                    window._currentAttachments = article.attachments || [];${renderAttachments(article.attachments)}
                     </div>
                 `;
             } catch (err) {
@@ -310,10 +356,48 @@
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
             return (bytes / 1024 / 1024).toFixed(1) + ' MB';
         }
+        function canPreview(t) { return t === 'image' || t === 'pdf' || t === 'doc' || t === 'xls' || t === 'ppt'; }
+        function buildOfficeViewerUrl(attUrl) {
+            // Google Docs Viewer：国内可能慢/不可用，但仍是唯一不需要后端的方案
+            return 'https://docs.google.com/viewer?url=' + encodeURIComponent(attUrl) + '&embedded=true';
+        }
+        function openPreview(idx, attachments) {
+            var att = attachments[idx];
+            if (!att) return;
+            var t = getFileIconType(att.name || att.url);
+            var overlay = document.getElementById('previewOverlay');
+            var body = document.getElementById('previewBody');
+            var title = document.getElementById('previewTitle');
+            title.textContent = att.name || '附件';
+            body.innerHTML = '';
+            if (t === 'image') {
+                body.innerHTML = '<img src="' + att.url + '" alt="' + (att.name || '') + '">';
+            } else if (t === 'pdf') {
+                body.innerHTML = '<iframe src="' + att.url + '" title="' + (att.name || '') + '"></iframe>';
+            } else if (t === 'doc' || t === 'xls' || t === 'ppt') {
+                var viewerUrl = buildOfficeViewerUrl(att.url);
+                body.innerHTML = '<iframe src="' + viewerUrl + '" title="' + (att.name || '') + '"></iframe>';
+            } else {
+                body.innerHTML = '<div class="preview-error">'
+                    + '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM13 9V3.5L18.5 9H13z"/></svg>'
+                    + '<div>该文件类型不支持在线预览</div>'
+                    + '</div>';
+            }
+            overlay.classList.add('open');
+        }
+        function closePreview() {
+            var overlay = document.getElementById('previewOverlay');
+            overlay.classList.remove('open');
+            document.getElementById('previewBody').innerHTML = '';
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closePreview();
+        });
         function renderAttachments(attachments) {
             if (!attachments || attachments.length === 0) return '';
-            var items = attachments.map(function(att) {
+            var items = attachments.map(function(att, idx) {
                 var t = getFileIconType(att.name || att.url);
+                var previewable = canPreview(t);
                 var topBlock = '';
                 if (t === 'image') {
                     topBlock = '<img src="' + att.url + '" alt="' + att.name + '">';
@@ -322,13 +406,15 @@
                 } else {
                     topBlock = fileIconBigSvg(t);
                 }
-                return '<div class="attachment-display-item">'
+                var clickAttr = previewable ? ' onclick="openPreview(' + idx + ', window._currentAttachments)"' : '';
+                var noPreviewClass = previewable ? '' : ' no-preview';
+                var badge = previewable ? '<span class="preview-badge">点击预览</span>' : '';
+                return '<div class="attachment-display-item' + noPreviewClass + '"' + clickAttr + '>'
                     + '<div class="attachment-display-image">' + topBlock + '</div>'
                     + '<div class="attachment-display-info">'
-                    + '<div class="attachment-display-name">' + (att.name || '附件') + '</div>'
+                    + '<div class="attachment-display-name">' + (att.name || '附件') + ' ' + badge + '</div>'
                     + '<div class="attachment-display-meta">'
-                    + (att.size ? '<span>' + formatFileSize(att.size) + '</span> · ' : '')
-                    + '<a href="' + att.url + '" target="_blank" download>下载/新窗口</a>'
+                    + (att.size ? '<span>' + formatFileSize(att.size) + '</span>' : '')
                     + '</div></div></div>';
             }).join('');
             return '<div class="attachments-section">'
@@ -396,5 +482,13 @@
             });
         })();
     </script>
+    <!-- 附件预览层 -->
+    <div class="preview-overlay" id="previewOverlay" onclick="if(event.target===this) closePreview()">
+        <div class="preview-header">
+            <div class="preview-title" id="previewTitle">附件预览</div>
+            <button class="preview-close" onclick="closePreview()" title="关闭 (ESC)">×</button>
+        </div>
+        <div class="preview-body" id="previewBody"></div>
+    </div>
 </body>
 </html>
