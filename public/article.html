@@ -321,7 +321,7 @@
                             </div>
                         </div>
                         <div class="article-content">${formatContent(article.content)}</div>
-                    window._currentAttachments = article.attachments || [];${renderAttachments(article.attachments)}
+                    ${window._currentAttachments = article.attachments || []}${renderAttachments(article.attachments)}
                     </div>
                 `;
             } catch (err) {
