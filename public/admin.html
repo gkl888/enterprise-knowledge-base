@@ -242,6 +242,43 @@
         .status-tag.active { background: #f6ffed; color: #52c41a; }
         .status-tag.disabled { background: #fff1f0; color: #f5222d; }
         .user-actions { display: flex; gap: 8px; }
+        /* 用户下拉菜单 */
+        .user-menu { position: relative; }
+        .user-menu-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-width: 200px;
+            z-index: 100;
+            display: none;
+            padding: 6px 0;
+        }
+        .user-menu-dropdown.open { display: block; }
+        .user-menu-header {
+            padding: 10px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            color: #666;
+        }
+        .user-menu-header strong { color: #1a1a1a; display: block; font-size: 14px; }
+        .user-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .user-menu-item:hover { background: #f5f5f5; }
+        .user-menu-item svg { fill: #666; }
+        .form-hint { font-size: 12px; color: #999; margin-top: 4px; }
         /* 日志 */
         .log-list { max-height: 600px; overflow-y: auto; }
         .log-item { padding: 12px 24px; border-bottom: 1px solid #f5f5f5; font-size: 13px; display: flex; gap: 12px; align-items: flex-start; }
@@ -271,7 +308,20 @@
                 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 <input type="text" placeholder="快速搜索知识" id="navSearch">
             </div>
-            <div class="user-avatar" id="userAvatar"></div>
+            <div class="user-menu" id="userMenu">
+                <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()"></div>
+                <div class="user-menu-dropdown" id="userMenuDropdown">
+                    <div class="user-menu-header" id="userMenuHeader"></div>
+                    <a class="user-menu-item" href="javascript:void(0)" onclick="openChangePasswordModal()">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                        修改我的密码
+                    </a>
+                    <a class="user-menu-item" href="javascript:void(0)" onclick="logout()">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                        退出登录
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -433,10 +483,39 @@
 
 
     <!-- 新建用户模态框 -->
+    <div class="modal" id="changePasswordModal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <div class="modal-title">修改我的密码</div>
+                <button class="modal-close" onclick="closeChangePasswordModal()">
+                    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">当前密码</label>
+                    <input type="password" class="form-input" id="cpOldPassword" placeholder="请输入当前密码">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">新密码</label>
+                    <input type="password" class="form-input" id="cpNewPassword" placeholder="至少 4 个字符">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认新密码</label>
+                    <input type="password" class="form-input" id="cpConfirmPassword" placeholder="再次输入新密码">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeChangePasswordModal()">取消</button>
+                <button class="btn btn-primary" onclick="changeMyPassword()">确定修改</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal" id="userModal">
         <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header">
-                <div class="modal-title">新建用户</div>
+                <div class="modal-title" id="userModalTitle">新建用户</div>
                 <button class="modal-close" onclick="closeUserModal()">
                     <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                 </button>
@@ -447,8 +526,9 @@
                     <input type="text" class="form-input" id="newUsername" placeholder="2-20 个字符">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">初始密码</label>
+                    <label class="form-label" id="newPasswordLabel">初始密码</label>
                     <input type="text" class="form-input" id="newPassword" placeholder="至少 4 个字符">
+                    <div class="form-hint" id="newPasswordHint" style="display:none;">编辑用户时留空则不修改密码</div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">角色</label>
@@ -460,7 +540,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-default" onclick="closeUserModal()">取消</button>
-                <button class="btn btn-primary" onclick="createUser()">创建</button>
+                <button class="btn btn-primary" id="userModalSubmitBtn" onclick="submitUserModal()">创建</button>
             </div>
         </div>
     </div>
@@ -787,6 +867,7 @@
                             <div class="user-meta">注册：${formatDate(u.created_at)} · 最后登录：${formatDateTime(u.last_login_at)}</div>
                         </div>
                         <div class="user-actions">
+                            <button class="btn btn-default action-btn" onclick="openEditUserModal(${u.id}, '${u.username}', '${u.role}')">编辑</button>
                             <button class="btn btn-default action-btn" onclick="resetUserPassword(${u.id}, '${u.username}')">重置密码</button>
                             ${u.status === 'disabled'
                                 ? `<button class="btn btn-primary action-btn" onclick="toggleUserStatus(${u.id}, 'active')">启用</button>`
@@ -925,6 +1006,132 @@
             return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
         }
         // 初始化
+        // 头像下拉菜单
+        function toggleUserMenu() {
+            document.getElementById('userMenuDropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', function(e) {
+            var menu = document.getElementById('userMenu');
+            if (menu && !menu.contains(e.target)) {
+                var dd = document.getElementById('userMenuDropdown');
+                if (dd) dd.classList.remove('open');
+            }
+        });
+        var editingUserId = null;
+        function openEditUserModal(id, username, role) {
+            editingUserId = id;
+            document.getElementById('userModalTitle').textContent = '编辑用户';
+            document.getElementById('newUsername').value = username;
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newRole').value = role;
+            document.getElementById('newPasswordLabel').textContent = '重置密码（可选）';
+            document.getElementById('newPasswordHint').style.display = 'block';
+            document.getElementById('userModalSubmitBtn').textContent = '保存';
+            document.getElementById('userModal').classList.add('active');
+        }
+        async function submitUserModal() {
+            if (editingUserId) {
+                await saveEditedUser();
+            } else {
+                await createUser();
+            }
+        }
+        async function saveEditedUser() {
+            if (!editingUserId) return;
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newPassword').value.trim();
+            const role = document.getElementById('newRole').value;
+            if (!username) { alert('请输入用户名'); return; }
+            if (username.length < 2) { alert('用户名至少 2 个字符'); return; }
+            const body = { username, role };
+            if (password) {
+                if (password.length < 4) { alert('密码至少 4 个字符'); return; }
+                body.password = password;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/users/${editingUserId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || '保存失败'); return; }
+                closeUserModal();
+                await loadUsers();
+                renderUserList();
+                alert('已保存');
+                if (editingUserId === (user && user.userId)) {
+                    user.username = username;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    renderUserMenu();
+                }
+            } catch (err) { alert('网络错误'); }
+        }
+        function openUserModal() {
+            editingUserId = null;
+            document.getElementById('userModalTitle').textContent = '新建用户';
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newRole').value = 'user';
+            document.getElementById('newPasswordLabel').textContent = '初始密码';
+            document.getElementById('newPasswordHint').style.display = 'none';
+            document.getElementById('userModalSubmitBtn').textContent = '创建';
+            document.getElementById('userModal').classList.add('active');
+        }
+        function openChangePasswordModal() {
+            document.getElementById('cpOldPassword').value = '';
+            document.getElementById('cpNewPassword').value = '';
+            document.getElementById('cpConfirmPassword').value = '';
+            document.getElementById('changePasswordModal').classList.add('active');
+            var dd = document.getElementById('userMenuDropdown');
+            if (dd) dd.classList.remove('open');
+        }
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('active');
+        }
+        async function changeMyPassword() {
+            const oldP = document.getElementById('cpOldPassword').value;
+            const newP = document.getElementById('cpNewPassword').value;
+            const confP = document.getElementById('cpConfirmPassword').value;
+            if (!oldP || !newP || !confP) { alert('请填写所有密码字段'); return; }
+            if (newP.length < 4) { alert('新密码至少 4 个字符'); return; }
+            if (newP !== confP) { alert('两次输入的新密码不一致'); return; }
+            if (newP === oldP) { alert('新密码不能与当前密码相同'); return; }
+            try {
+                const loginRes = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user.username, password: oldP })
+                });
+                const loginData = await loginRes.json();
+                if (!loginRes.ok) { alert('当前密码错误'); return; }
+            } catch (e) { alert('验证当前密码失败'); return; }
+            try {
+                const res = await fetch(`${API_BASE}/users/${user.userId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+                    body: JSON.stringify({ password: newP })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || '修改失败'); return; }
+                alert('密码已修改，请重新登录');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+            } catch (err) { alert('网络错误'); }
+        }
+        function logout() {
+            if (!confirm('确定要退出登录吗？')) return;
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+        function renderUserMenu() {
+            var hdr = document.getElementById('userMenuHeader');
+            if (hdr && user) {
+                hdr.innerHTML = '<strong>' + user.username + '</strong>当前登录账号';
+            }
+        }
         (function() {
             const userStr = localStorage.getItem('user');
             if (userStr) {
@@ -956,6 +1163,7 @@
             });
             loadUsers().then(() => renderUserList());
             loadLogs();
+            renderUserMenu();
             document.getElementById('userModal').addEventListener('click', function(e) {
                 if (e.target === this) closeUserModal();
             });
