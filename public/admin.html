@@ -756,8 +756,12 @@
         async function uploadFileToSupabase(file) {
             return new Promise(function(resolve, reject) {
                 var stamp = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-                var safeName = file.name.replace(/[^a-zA-Z0-9._\u4e00-\u9fff-]/g, '_');
-                var path = stamp + '_' + safeName;
+                // ASCII-only object key: Supabase Storage 不接受非 ASCII key (会报 InvalidKey)
+                // 原文件名（含中文）保留在 attachments[].name 字段里展示，这里只用扩展名 + hash
+                var dotIdx = file.name.lastIndexOf('.');
+                var ext = dotIdx >= 0 ? file.name.substring(dotIdx).toLowerCase().replace(/[^a-z0-9.]/g, '') : '';
+                if (ext.length > 8) ext = ext.substring(0, 8);
+                var path = stamp + ext;
                 var xhr = new XMLHttpRequest();
                 xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + encodeURIComponent(path), true);
                 xhr.setRequestHeader('apikey', SUPABASE_KEY);
