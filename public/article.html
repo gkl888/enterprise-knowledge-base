@@ -110,6 +110,42 @@
         .article-content p { margin: 12px 0; }
         .article-content ul, .article-content ol { margin: 12px 0; padding-left: 24px; }
         .article-content li { margin: 6px 0; }
+        /* 附件 */
+        .attachments-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid #f0f0f0; }
+        .attachments-title { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 16px; }
+        .attachment-display-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        .attachment-display-item {
+            border: 1px solid #e8e8e8; border-radius: 8px;
+            overflow: hidden; background: white; transition: all 0.2s;
+        }
+        .attachment-display-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-color: #d0d0d0; }
+        .attachment-display-image {
+            width: 100%; height: 180px; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            background: #f8f9fa;
+        }
+        .attachment-display-image img { width: 100%; height: 100%; object-fit: contain; }
+        .attachment-display-image iframe { width: 100%; height: 100%; border: none; }
+        .attachment-display-image .file-icon-big {
+            width: 80px; height: 80px; display: flex;
+            align-items: center; justify-content: center;
+            background: #e6f7ff; border-radius: 12px;
+        }
+        .attachment-display-image .file-icon-big svg { width: 48px; height: 48px; fill: #1677ff; }
+        .attachment-display-info { padding: 12px; }
+        .attachment-display-name {
+            font-size: 14px; color: #1a1a1a; font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .attachment-display-meta { font-size: 12px; color: #999; display: flex; gap: 8px; align-items: center; }
+        .attachment-display-meta a { color: #1677ff; text-decoration: none; }
+        .attachment-display-meta a:hover { text-decoration: underline; }
+        .article-card-attach {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 12px; color: #1677ff; margin-left: 8px;
+        }
+        .article-card-attach svg { width: 14px; height: 14px; fill: currentColor; }
         .not-found { text-align: center; padding: 60px 20px; }
         .not-found svg { width: 64px; height: 64px; fill: #d9d9d9; margin-bottom: 16px; }
         .not-found h2 { font-size: 18px; color: #666; margin-bottom: 8px; }
@@ -239,6 +275,7 @@
                             </div>
                         </div>
                         <div class="article-content">${formatContent(article.content)}</div>
+                    ${renderAttachments(article.attachments)}
                     </div>
                 `;
             } catch (err) {
@@ -246,6 +283,59 @@
             }
         }
 
+        function getFileIconType(name) {
+            var ext = (name.split('.').pop() || '').toLowerCase();
+            if (['jpg','jpeg','png','gif','webp','svg','bmp'].indexOf(ext) >= 0) return 'image';
+            if (ext === 'pdf') return 'pdf';
+            if (['doc','docx'].indexOf(ext) >= 0) return 'doc';
+            if (['xls','xlsx','csv'].indexOf(ext) >= 0) return 'xls';
+            if (['ppt','pptx'].indexOf(ext) >= 0) return 'ppt';
+            if (['zip','rar','7z'].indexOf(ext) >= 0) return 'zip';
+            return 'file';
+        }
+        function fileIconBigSvg(type) {
+            var d = {
+                pdf: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM8 13h2v2H8v-2zm0 4h8v2H8v-2zm0-8h2v2H8V9zm6 0h2v2h-2V9zm-1-4.5L18.5 9H13V4.5z',
+                doc: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z',
+                xls: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM8 12h2v1H8v-1zm0 3h2v1H8v-1zm0-6h2v1H8V9zm6 6H10v-1h4v1zm0-3H10v-1h4v1zm0-3H10V9h4v1z',
+                ppt: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z',
+                zip: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM12 17h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z',
+                file: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM13 9V3.5L18.5 9H13z'
+            };
+            return '<div class="file-icon-big"><svg viewBox="0 0 24 24"><path d="' + d[type] + '"/></svg></div>';
+        }
+        function formatFileSize(bytes) {
+            if (!bytes) return '';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        }
+        function renderAttachments(attachments) {
+            if (!attachments || attachments.length === 0) return '';
+            var items = attachments.map(function(att) {
+                var t = getFileIconType(att.name || att.url);
+                var topBlock = '';
+                if (t === 'image') {
+                    topBlock = '<img src="' + att.url + '" alt="' + att.name + '">';
+                } else if (t === 'pdf') {
+                    topBlock = '<iframe src="' + att.url + '" title="' + att.name + '"></iframe>';
+                } else {
+                    topBlock = fileIconBigSvg(t);
+                }
+                return '<div class="attachment-display-item">'
+                    + '<div class="attachment-display-image">' + topBlock + '</div>'
+                    + '<div class="attachment-display-info">'
+                    + '<div class="attachment-display-name">' + (att.name || '附件') + '</div>'
+                    + '<div class="attachment-display-meta">'
+                    + (att.size ? '<span>' + formatFileSize(att.size) + '</span> · ' : '')
+                    + '<a href="' + att.url + '" target="_blank" download>下载/新窗口</a>'
+                    + '</div></div></div>';
+            }).join('');
+            return '<div class="attachments-section">'
+                + '<div class="attachments-title">📎 附件（' + attachments.length + '）</div>'
+                + '<div class="attachment-display-list">' + items + '</div>'
+                + '</div>';
+        }
         function showNotFound(container, msg) {
             container.innerHTML = `
                 <div class="not-found">
