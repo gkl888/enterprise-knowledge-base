@@ -118,7 +118,7 @@
         if (user.role !== 'admin') return Promise.resolve(jr({ error: 'forbidden' }, 403));
         var r4 = h('/articles', {
           method: 'POST',
-          body: { title: body.title, content: body.content, summary: body.summary || '', category: body.category, author: user.username, views: 0, created_at: new Date().toISOString().split('T')[0] },
+          body: { title: body.title, content: body.content, summary: body.summary || '', category: body.category, author: user.username, views: 0, created_at: new Date().toISOString().split('T')[0], attachments: body.attachments || [] },
           prefer: 'return=representation'
         });
         var arr2 = JSON.parse(r4.responseText);
@@ -129,7 +129,7 @@
       if ((m = path.match(/^\/articles\/(\d+)$/)) && method === 'PUT') {
         if (!user) return Promise.resolve(jr({ error: 'unauthorized' }, 401));
         if (user.role !== 'admin') return Promise.resolve(jr({ error: 'forbidden' }, 403));
-        h('/articles?id=eq.' + m[1], { method: 'PATCH', body: { title: body.title, content: body.content, summary: body.summary, category: body.category } });
+        h('/articles?id=eq.' + m[1], { method: 'PATCH', body: { title: body.title, content: body.content, summary: body.summary, category: body.category, attachments: body.attachments !== undefined ? body.attachments : undefined } });
         recordLog(user.username, 'update_article', 'article', m[1], '更新文章：' + body.title);
         return Promise.resolve(jr({ message: 'updated' }));
       }
