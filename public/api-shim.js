@@ -251,6 +251,19 @@
         if (body.password) { upd.password = body.password; detail += ' 重置密码'; }
         if (body.role) { upd.role = body.role; detail += ' 角色改为 ' + body.role; }
         if (body.status) { upd.status = body.status; detail += ' 状态改为 ' + body.status; }
+        if (body.username && body.username !== undefined) {
+          // 校验用户名长度
+          if (typeof body.username !== 'string' || body.username.length < 2 || body.username.length > 32) {
+            return Promise.resolve(jr({ error: '用户名长度需 2-32 字符' }, 400));
+          }
+          // 校验是否重复
+          var exist = JSON.parse(h('/users?username=eq.' + encodeURIComponent(body.username) + '&select=id').responseText);
+          if (exist && exist.length > 0 && String(exist[0].id) !== String(m[1])) {
+            return Promise.resolve(jr({ error: '用户名已存在' }, 400));
+          }
+          upd.username = body.username;
+          detail += ' 用户名改为 ' + body.username;
+        }
         h('/users?id=eq.' + m[1], { method: 'PATCH', body: upd });
         recordLog(user.username, 'update_user', 'user', m[1], detail);
         return Promise.resolve(jr({ message: '已更新' }));
