@@ -804,7 +804,17 @@
         }
 
         // 登录表单提交
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        // 页面加载时：如果已登录(token 存在)就跳过登录页
+        if (localStorage.getItem('token') && localStorage.getItem('user')) {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('mainPage').style.display = 'block';
+            // 先让 mainPage 渲染骨架再异步加载数据
+            (async function() {
+                try { await initPage(); } catch (err) { console.error('init page failed:', err); }
+            })();
+        }
+
+                document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
