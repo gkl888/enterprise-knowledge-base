@@ -178,6 +178,52 @@
         }
         .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #1677ff; }
         .form-textarea { min-height: 200px; resize: vertical; }
+        /* 附件上传 */
+        .attachments-section { margin-top: 8px; }
+        .attachments-label {
+            display: block; font-size: 14px; font-weight: 500;
+            color: #333; margin-bottom: 8px;
+        }
+        .attachments-hint { font-size: 12px; color: #999; margin-bottom: 12px; }
+        .upload-area {
+            border: 2px dashed #d9d9d9; border-radius: 8px;
+            padding: 24px; text-align: center; cursor: pointer;
+            background: #fafafa; transition: all 0.2s; margin-bottom: 12px;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #0d7a3d; background: #f6ffed;
+        }
+        .upload-area svg { width: 36px; height: 36px; fill: #999; margin-bottom: 8px; }
+        .upload-area p { font-size: 13px; color: #666; margin: 0; }
+        .upload-area .hint { font-size: 12px; color: #999; margin-top: 4px; }
+        .upload-area .progress { font-size: 12px; color: #1677ff; margin-top: 8px; }
+        .attachment-list { display: flex; flex-direction: column; gap: 8px; }
+        .attachment-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; background: #f8f9fa;
+            border-radius: 6px; border: 1px solid #e8e8e8;
+        }
+        .attachment-thumb {
+            width: 40px; height: 40px; border-radius: 4px;
+            background: #e6f7ff; display: flex; align-items: center;
+            justify-content: center; flex-shrink: 0;
+            overflow: hidden;
+        }
+        .attachment-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .attachment-thumb svg { width: 22px; height: 22px; fill: #1677ff; }
+        .attachment-info { flex: 1; min-width: 0; }
+        .attachment-name {
+            font-size: 13px; color: #1a1a1a; font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .attachment-meta { font-size: 11px; color: #999; margin-top: 2px; }
+        .attachment-actions { display: flex; gap: 6px; }
+        .attachment-actions button {
+            padding: 4px 10px; font-size: 12px;
+            background: white; border: 1px solid #d9d9d9;
+            border-radius: 4px; cursor: pointer; color: #666;
+        }
+        .attachment-actions button:hover { border-color: #ff4d4f; color: #ff4d4f; }
         .modal-footer {
             display: flex; justify-content: flex-end; gap: 12px;
             padding: 16px 24px; border-top: 1px solid #f0f0f0;
@@ -572,6 +618,17 @@
                     <label class="form-label">文章内容</label>
                     <textarea class="form-textarea" id="articleContent" placeholder="请输入文章内容，支持 Markdown 格式"></textarea>
                 </div>
+                <div class="form-group attachments-section">
+                    <label class="attachments-label">附件（支持图片、PDF、Word、Excel 等，单文件 ≤ 50MB，最多 5 个）</label>
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('attachmentInput').click()">
+                        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                        <p>点击或拖拽文件到这里上传</p>
+                        <p class="hint">图片会显示在文章详情，PDF 用 iframe 预览，其他文件提供下载</p>
+                        <p class="progress" id="uploadProgress"></p>
+                    </div>
+                    <input type="file" id="attachmentInput" multiple style="display:none;" onchange="handleFileSelect(event)">
+                    <div class="attachment-list" id="attachmentList"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-default" onclick="closeModal()">取消</button>
@@ -663,7 +720,154 @@
             ).join('');
         }
 
-        function openModal(isEdit = false) {
+        let pendingAttachments = [];
+        const SUPABASE_URL = 'https://esfuzcizqjamcegmddok.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZnV6Y2l6cWphbWNlZ21kZG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyOTU1NzQsImV4cCI6MjEwMjg3MTU3NH0.ccCTSySdvcBM6KTR1xo7GB8l4DgJFzGlJNVCp0xTf9Y';
+        const BUCKET = 'articles';
+        const MAX_FILES = 5;
+        const MAX_SIZE = 50 * 1024 * 1024;
+        function getFileIcon(name) {
+            var ext = (name.split('.').pop() || '').toLowerCase();
+            if (['jpg','jpeg','png','gif','webp','svg','bmp'].indexOf(ext) >= 0) return 'image';
+            if (ext === 'pdf') return 'pdf';
+            if (['doc','docx'].indexOf(ext) >= 0) return 'doc';
+            if (['xls','xlsx','csv'].indexOf(ext) >= 0) return 'xls';
+            if (['ppt','pptx'].indexOf(ext) >= 0) return 'ppt';
+            if (['zip','rar','7z'].indexOf(ext) >= 0) return 'zip';
+            return 'file';
+        }
+        function fileIconSvg(type) {
+            var d = {
+                image: 'M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z',
+                pdf: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM8 13h2v2H8v-2zm0 4h8v2H8v-2zm0-8h2v2H8V9zm6 0h2v2h-2V9zm-1-4.5L18.5 9H13V4.5z',
+                doc: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z',
+                xls: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM8 12h2v1H8v-1zm0 3h2v1H8v-1zm0-6h2v1H8V9zm6 6H10v-1h4v1zm0-3H10v-1h4v1zm0-3H10V9h4v1z',
+                ppt: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z',
+                zip: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM12 17h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z',
+                file: 'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM13 9V3.5L18.5 9H13z'
+            };
+            return '<svg viewBox="0 0 24 24"><path d="' + d[type] + '"/></svg>';
+        }
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        }
+        async function uploadFileToSupabase(file) {
+            return new Promise(function(resolve, reject) {
+                var stamp = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+                var safeName = file.name.replace(/[^a-zA-Z0-9._\u4e00-\u9fff-]/g, '_');
+                var path = stamp + '_' + safeName;
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + encodeURIComponent(path), true);
+                xhr.setRequestHeader('apikey', SUPABASE_KEY);
+                xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_KEY);
+                xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        var pct = Math.round(e.loaded / e.total * 100);
+                        var pp = document.getElementById('uploadProgress');
+                        if (pp) pp.textContent = '上传中... ' + pct + '%';
+                    }
+                };
+                xhr.onload = function() {
+                    var pp = document.getElementById('uploadProgress');
+                    if (pp) pp.textContent = '';
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        var publicUrl = SUPABASE_URL + '/storage/v1/object/public/' + BUCKET + '/' + path;
+                        resolve({ name: file.name, url: publicUrl, size: file.size, type: file.type || '' });
+                    } else {
+                        reject(new Error('上传失败：HTTP ' + xhr.status + ' - bucket 可能未创建或权限不足'));
+                    }
+                };
+                xhr.onerror = function() {
+                    var pp = document.getElementById('uploadProgress');
+                    if (pp) pp.textContent = '';
+                    reject(new Error('网络错误，请检查 Supabase Storage bucket 是否创建并设为 Public'));
+                };
+                xhr.send(file);
+            });
+        }
+        function renderAttachmentList() {
+            var list = document.getElementById('attachmentList');
+            if (!list) return;
+            if (pendingAttachments.length === 0) {
+                list.innerHTML = '';
+                return;
+            }
+            list.innerHTML = pendingAttachments.map(function(att, i) {
+                var iconType = getFileIcon(att.name);
+                var thumb = iconType === 'image'
+                    ? '<img src="' + att.url + '" alt="">'
+                    : fileIconSvg(iconType);
+                return '<div class="attachment-item">'
+                    + '<div class="attachment-thumb">' + thumb + '</div>'
+                    + '<div class="attachment-info">'
+                    + '<div class="attachment-name">' + att.name + '</div>'
+                    + '<div class="attachment-meta">' + formatFileSize(att.size) + '</div>'
+                    + '</div>'
+                    + '<div class="attachment-actions">'
+                    + '<button type="button" onclick="removeAttachment(' + i + ')">删除</button>'
+                    + '</div>'
+                    + '</div>';
+            }).join('');
+        }
+        function removeAttachment(i) {
+            pendingAttachments.splice(i, 1);
+            renderAttachmentList();
+        }
+        async function handleFileSelect(e) {
+            var files = Array.from(e.target.files || []);
+            e.target.value = '';
+            await processFiles(files);
+        }
+        async function processFiles(files) {
+            if (pendingAttachments.length + files.length > MAX_FILES) {
+                alert('最多上传 ' + MAX_FILES + ' 个文件，当前已有 ' + pendingAttachments.length + ' 个');
+                return;
+            }
+            for (var i = 0; i < files.length; i++) {
+                var f = files[i];
+                if (f.size > MAX_SIZE) {
+                    alert(f.name + ' 超过 50MB，无法上传');
+                    continue;
+                }
+                try {
+                    var att = await uploadFileToSupabase(f);
+                    pendingAttachments.push(att);
+                    renderAttachmentList();
+                } catch (err) {
+                    alert(f.name + ' 上传失败：' + err.message);
+                }
+            }
+        }
+        // Drag & drop
+        (function() {
+            var setup = function() {
+                var area = document.getElementById('uploadArea');
+                if (!area) { setTimeout(setup, 100); return; }
+                area.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    area.classList.add('dragover');
+                });
+                area.addEventListener('dragleave', function() {
+                    area.classList.remove('dragover');
+                });
+                area.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    area.classList.remove('dragover');
+                    var files = Array.from(e.dataTransfer.files || []);
+                    processFiles(files);
+                });
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setup);
+            } else {
+                setup();
+            }
+        })();
+        function openModal(isEdit) {
+            if (isEdit === undefined) isEdit = false;
             document.getElementById('articleModal').classList.add('active');
             document.getElementById('modalTitle').textContent = isEdit ? '编辑文章' : '新建文章';
             renderCategoryOptions();
@@ -672,6 +876,8 @@
                 document.getElementById('articleTitle').value = '';
                 document.getElementById('articleSummary').value = '';
                 document.getElementById('articleContent').value = '';
+                pendingAttachments = [];
+                renderAttachmentList();
             }
         }
 
@@ -690,7 +896,7 @@
             if (!summary) { alert('请输入文章摘要'); return; }
             if (!content) { alert('请输入文章内容'); return; }
 
-            const data = { title, category, summary, content };
+            const data = { title, category, summary, content, attachments: pendingAttachments.slice() };
             const method = id ? 'PUT' : 'POST';
             const url = id ? `${API_BASE}/articles/${id}` : `${API_BASE}/articles`;
 
@@ -723,6 +929,8 @@
                 document.getElementById('articleCategory').value = article.category;
                 document.getElementById('articleSummary').value = article.summary;
                 document.getElementById('articleContent').value = article.content;
+                pendingAttachments = (article.attachments && Array.isArray(article.attachments)) ? article.attachments.slice() : [];
+                renderAttachmentList();
                 openModal(true);
             }
         }
